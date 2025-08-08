@@ -158,6 +158,15 @@ namespace YGMailLib.Zip.Streams
             this.streamMode = streamMode;
 
             // Saltサイズ取得
+            switch(aesMode)
+            {
+                case ZipArcClass.ENCRYPTION_OPTION.AES128:
+                case ZipArcClass.ENCRYPTION_OPTION.AES192:
+                case ZipArcClass.ENCRYPTION_OPTION.AES256:
+                    break;
+                default:
+                    throw new CryptographicException(nameof(aesMode), "Invalid AES mode specified.");
+            }
             byte[] aesSalt = new byte[AES_SALT_LENGTH[(int)aesMode]];
 
             // ストリームモード別処理

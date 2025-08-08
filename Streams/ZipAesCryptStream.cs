@@ -435,8 +435,10 @@ namespace YGMailLib.Zip.Streams
             /// <summary>AES</summary>
             private static readonly System.Security.Cryptography.Aes aesCrypt = null;
 
+            /// <summary>スレッド番号</summary>
             private static long threadNo = 0;
 
+            /// <summary>スレッド番号ロック</summary>
             private static readonly object threadNoLocker = new object();
 
             /// <summary>AES暗号化/復号化</summary>
@@ -491,7 +493,6 @@ namespace YGMailLib.Zip.Streams
             /// <summary>
             /// コンストラクタ
             /// </summary>
-
             static AesMaskThread()
             {
                 aesCrypt = System.Security.Cryptography.Aes.Create();

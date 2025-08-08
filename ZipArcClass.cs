@@ -295,7 +295,7 @@ if (filenameEncoding == null)
         /// 非同期系のメソッドを使用した場合依頼順の格納とならない可能性があるが、
         /// CentralDirectoryを依頼順で格納する。
         /// </remarks>
-        public bool SortCentralDirectory { get; set; } = true;
+        public bool StoreInOrderAdded { get; set; } = true;
 
         /// <summary>
         /// 書庫に格納済みのファイルとディレクトリの総数
@@ -1078,12 +1078,13 @@ if (filenameEncoding == null)
             // 出力用配列作成
             List<PartInfoClass> partInfos = new List<PartInfoClass>();
             partInfos.AddRange(partInfoList.ToArray());
-            if (this.SortCentralDirectory)
+            if (this.StoreInOrderAdded)
             {
+                // 追加順にソートする
                 partInfos.Sort((a, b) => {
                     if (a.Id < b.Id) return -1;
                     else if (a.Id > b.Id) return 1;
-                    else return 0;
+                    return 0;
                 });
             }
 

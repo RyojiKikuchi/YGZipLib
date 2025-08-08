@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 #if YGZIPLIB && DEFLATE64
@@ -465,6 +466,7 @@ namespace YGZipLib.Streams
                     rightNode = null;
                 }
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 BinaryTreeNode Left()
                 {
                     if (leftNode == null && literal == -1)
@@ -474,6 +476,7 @@ namespace YGZipLib.Streams
                     return leftNode;
                 }
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 BinaryTreeNode Right()
                 {
                     if (rightNode == null && literal == -1)
@@ -561,6 +564,7 @@ namespace YGZipLib.Streams
                     mask = memory.Length - 1;
                 }
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public byte Add(byte b)
                 {
                     memory[wHead] = b;
@@ -568,6 +572,7 @@ namespace YGZipLib.Streams
                     return b;
                 }
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Add(byte[] b, int off, int len)
                 {
                     for (int i = off; i < off + len; i++)

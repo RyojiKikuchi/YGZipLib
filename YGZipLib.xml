@@ -466,6 +466,15 @@
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskTask">
             <summary>マスク作成タスク</summary>
         </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector512Supported">
+            <summary>Vector512サポート判定</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector256Supported">
+            <summary>Vector256サポート判定</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector128Supported">
+            <summary>Vector128サポート判定</summary>
+        </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.#ctor(System.IO.Stream,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],YGZipLib.Streams.ZipAesCryptStream.StreamMode,System.Int64)">
             <summary>
             コンストラクタ
@@ -562,6 +571,12 @@
         </member>
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.aesCrypt">
             <summary>AES</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.threadNo">
+            <summary>スレッド番号</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.threadNoLocker">
+            <summary>スレッド番号ロック</summary>
         </member>
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.aesTrans">
             <summary>AES暗号化/復号化</summary>
@@ -1431,7 +1446,7 @@
             ディレクトリを格納する
             </summary>
         </member>
-        <member name="P:YGZipLib.ZipArcClass.SortCentralDirectory">
+        <member name="P:YGZipLib.ZipArcClass.StoreInOrderAdded">
             <summary>
             CentralDirectoryをソートする
             </summary>

@@ -757,9 +757,9 @@ namespace YGZipLib.Streams
 
         public override bool CanRead => true;
 
-        public override bool CanSeek => throw new NotSupportedException();
+        public override bool CanSeek => false;
 
-        public override bool CanWrite => throw new NotSupportedException();
+        public override bool CanWrite => false;
 
         public override long Length => throw new NotSupportedException();
 

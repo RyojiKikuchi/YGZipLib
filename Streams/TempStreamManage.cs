@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
 #if YGZIPLIB
+using YGZipLib.Common;
 namespace YGZipLib.Streams
 #elif YGMAILLIB
+using YGMailLib.Zip.Common;
 namespace YGMailLib.Zip.Streams
 #endif
 {
@@ -64,9 +66,35 @@ namespace YGMailLib.Zip.Streams
             /// <returns></returns>
             public bool InUse { get; set; } = false;
 
+            private readonly string tempFileName;
+
             public TempFileStream(string tempFileName)
-                : base(tempFileName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, FILESTREAM_BUFFER_SIZE, FileOptions.DeleteOnClose | FileOptions.SequentialScan | FileOptions.Asynchronous)
+                : base(tempFileName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, FILESTREAM_BUFFER_SIZE, FileOptions.SequentialScan | FileOptions.Asynchronous)
             {
+                this.tempFileName = tempFileName;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                if (disposing)
+                {
+                    if (File.Exists(tempFileName))
+                    {
+                        try
+                        {
+                            File.Delete(tempFileName);
+                        }
+#if DEBUG
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Failed to delete temporary file: {tempFileName}, Exception: {ex.Message}");
+                        }
+#else
+                        catch { }
+#endif
+                }
+                }
             }
 
         }
@@ -93,7 +121,7 @@ namespace YGMailLib.Zip.Streams
             private const long MAX_MEMORY_STREAM_SIZE = 65536L;
 
             private TempStreamMode StreamMode { get; set; } = TempStreamMode.MEMORY;
-
+            
             #region "コンストラクタ"
 
             internal AutoTemporaryStream(GetTempFileStreamDelegate gtfs, CloseTempFileStreamDelegate ctfs, long estimateSize)
@@ -221,11 +249,8 @@ namespace YGMailLib.Zip.Streams
                 return fs;
             }
 
-            // Temporaryファイル名取得
-            string tempFileName = Path.Combine(tempDirPath, $"zltmp_{id}_{Guid.NewGuid():N}.tmp");
-
             // テンポラリファイル作成
-            fs = new TempFileStream(tempFileName)
+            fs = new TempFileStream(ShareMethodClass.GetTempFileName(tempDirPath))
             {
                 InUse = true
             };
@@ -258,11 +283,13 @@ namespace YGMailLib.Zip.Streams
                     stream.InUse = false;
                     return stream;
                 }
-                TempFileStream fs = tempFileList.ToList().Find((TempFileStream tfs) => !tfs.InUse);
-                if (fs != null)
+                foreach (TempFileStream item in tempFileList)
                 {
-                    fs.InUse = true;
-                    return fs;
+                    if (!item.InUse)
+                    {
+                        item.InUse = true;
+                        return item;
+                    }
                 }
             }
             return null;
@@ -279,10 +306,10 @@ namespace YGMailLib.Zip.Streams
             }
         }
 
-        public Stream GetTempStream()
-        {
-            return GetTempStream(0L);
-        }
+        //public Stream GetTempStream()
+        //{
+        //    return GetTempStream(0L);
+        //}
 
         public Stream GetTempStream(long estimateSize)
         {

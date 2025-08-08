@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 #if YGZIPLIB
 using YGZipLib.Common;
@@ -71,7 +72,11 @@ namespace YGMailLib.Zip.Streams
 		/// <remarks></remarks>
 		public unsafe CalcCrc32Stream(Stream baseStream, StreamMode streamMode)
 		{
-			this.baseStream = baseStream;
+			if (baseStream == null)
+			{
+				throw new ArgumentNullException(nameof(baseStream));
+            }
+            this.baseStream = baseStream;
 			this.streamMode = streamMode;
             fixed (UInt32* crcTable = fixedBuf.crcTable)
             {
@@ -115,7 +120,7 @@ namespace YGMailLib.Zip.Streams
 
 		public override bool CanSeek => false;
 
-		public override bool CanWrite => streamMode != StreamMode.READ;
+		public override bool CanWrite => streamMode == StreamMode.WRITE;
 
 		public override long Length => baseStream.Length;
 
@@ -133,7 +138,7 @@ namespace YGMailLib.Zip.Streams
 
 		public override void Flush()
 		{
-			if (this.streamMode != 0)
+			if (this.streamMode == StreamMode.WRITE)
 			{
 				this.baseStream.Flush();
 			}
@@ -150,13 +155,13 @@ namespace YGMailLib.Zip.Streams
 			{
 				throw new NotSupportedException();
 			}
-			ioCount += count;
-			unsafe
-			{
+            ioCount += count;
+            unsafe
+            {
 				fixed(byte* bp = buffer)
 				{
                     byte* bop = &bp[offset];
-                    for (int i = offset; i < (count - offset); i++)
+                    for (int i = 0; i < count; i++)
                     {
                         crc32Work = fixedBuf.crcTable[(crc32Work ^ *(bop++)) & 0xFF] ^ (crc32Work >> 8);
                     }
@@ -175,12 +180,12 @@ namespace YGMailLib.Zip.Streams
 			
 			int readCount = baseStream.Read(buffer, offset, count);
 			ioCount += readCount;
-			unsafe
-			{
+            unsafe
+            {
                 fixed (byte* bp = buffer)
                 {
 					byte* bop = &bp[offset];
-                    for (int i = offset; i < (offset + readCount); i++)
+                    for (int i = 0; i < readCount; i++)
                     {
                         crc32Work = fixedBuf.crcTable[(crc32Work ^ *(bop++)) & 0xFF] ^ (crc32Work >> 8);
                     }
@@ -198,7 +203,8 @@ namespace YGMailLib.Zip.Streams
 		{
 			if (disposing)
 			{
-				baseStream = null;
+                // baseStreamのDisposeはここでは行わない
+                baseStream = null;
 			}
 			base.Dispose(disposing);
 		}

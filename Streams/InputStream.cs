@@ -54,7 +54,7 @@ namespace YGMailLib.Zip.Streams
 			maxPos = initPos + inputLength;
 			if (maxPos > baseStream.Length)
 			{
-				throw new IOException();
+				throw new IOException("inputLength is out of stream range.");
 			}
 		}
 
@@ -144,7 +144,7 @@ namespace YGMailLib.Zip.Streams
 			{
                 if (value < 0 || value > this.Length)
                 {
-                    throw new IOException();
+                    throw new IOException("Position is out of the valid range for this InputStream.");
                 }
 				baseStream.Position = initPos + value;
 			}
@@ -193,22 +193,23 @@ namespace YGMailLib.Zip.Streams
 					position += this.maxPos;
 					break;
 				default:
-					throw new System.IO.IOException();
+					throw new System.ArgumentOutOfRangeException(nameof(origin));
 			}
 
             if (position < initPos || position > maxPos)
 			{
-				throw new IOException();
-			}
+				throw new IOException("Position is out of the valid range for this InputStream.");
+            }
 			this.baseStream.Position = position;
-			return Position;
-		}
+            return this.Position;
+        }
 
-		protected override void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
 		{
 			if (disposing)
 			{
-				this.baseStream = null;
+                // 元ストリームはInputStreamの所有物ではないので、Disposeしない
+                this.baseStream = null;
 			}
 			base.Dispose(disposing);
 		}

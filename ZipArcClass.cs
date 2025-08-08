@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -193,9 +192,14 @@ namespace YGMailLib.Zip
         private readonly ConcurrentDictionary<PartInfoClass, bool> inprocFile = new ConcurrentDictionary<PartInfoClass, bool>();
 
         /// <summary>セントラルディレクトリのエントリ件数</summary>
-        private int directoryEntories = 0;
+        private int directoryEntries = 0;
+
+        /// <summary>Password</summary>
+        private byte[] bytePassword = null;
 
         private static readonly Regex dirReplaceRegex = new Regex(@"^[\/\\]+", RegexOptions.Compiled);
+
+        private long closedZipFileSize = 0;
 
         #endregion
 
@@ -206,7 +210,26 @@ namespace YGMailLib.Zip
         /// <para>nullなら暗号化なし</para>
         /// <para><see cref="ZipFileNameEncoding"/>でEncodeされます。互換性のためにASCII文字推奨</para>
         /// </summary>
-        public string Password { get; set; }
+        public string Password
+        {
+            set
+            {
+                if (bytePassword != null && bytePassword.Length > 0)
+                    Array.Clear(bytePassword, 0, bytePassword.Length);
+                bytePassword = null;
+                if (value == null)
+                {
+                    return;
+                }
+                byte[] p = ShareMethodClass.EncodingGetBytes(value, this.ZipFileNameEncoding);
+
+                if (p.Length > 0xFFFF)
+                {
+                    throw new ArgumentException("Password length must be less than 65536 bytes.", nameof(value));
+                }
+                bytePassword = p;
+            }
+        }
 
         /// <summary>
         /// 圧縮オプション  Default:<see cref="COMPRESSION_OPTION.DEFLATE"/>
@@ -288,14 +311,32 @@ if (filenameEncoding == null)
         /// </summary>
         public bool StoreDirectories { get; set; } = true;
 
+        private bool _StoreInOrderAdded = false;
+
         /// <summary>
-        /// CentralDirectoryをソートする
+        /// 書庫に格納するファイル・ディレクトリを依頼順に格納する。初回のAdd系メソッド呼び出し前に設定する必要がある。
         /// </summary>
         /// <remarks>
-        /// 非同期系のメソッドを使用した場合依頼順の格納とならない可能性があるが、
-        /// CentralDirectoryを依頼順で格納する。
+        /// 圧縮タスクはAdd系メソッド呼び出し順に完了しないため、書庫への格納順がAdd系メソッドの呼び出し順と異なる可能性が高い。trueに設定した場合依頼順で格納する。
+        /// 圧縮タスクが完了してもAdd系メソッド呼び出し順に格納するため、テンポラリファイル使用量や処理時間が増加する。
         /// </remarks>
-        public bool StoreInOrderAdded { get; set; } = true;
+        public bool StoreInOrderAdded
+        {
+            get
+            {
+                return _StoreInOrderAdded;
+
+            }
+            set
+            {
+                if (addQueueCount > 0)
+                {
+                    // 既にAddQueueが呼び出されている場合は変更不可
+                    return;
+                }
+                _StoreInOrderAdded = value;
+            }
+        }
 
         /// <summary>
         /// 書庫に格納済みのファイルとディレクトリの総数
@@ -313,7 +354,7 @@ if (filenameEncoding == null)
             {
                 if (this.baseStream == null)
                 {
-                    return 0;
+                    return closedZipFileSize;
                 }
                 return this.baseStream.Length;
             }
@@ -324,7 +365,7 @@ if (filenameEncoding == null)
         /// <para>部分的に大きなファイルが存在する場合や、処理多重度が高すぎてZIPファイルへの出力が間に合っていない場合に大きくなる</para>
         /// </summary>
         /// <returns></returns>
-        public int WriteQueueCount => procQueueList.Count + (this.writeStreamTask.IsCompleted ? 0 : 1);
+        public int WriteQueueCount => procQueueList.Count + partInfoDicCount + (this.writeStreamTask.IsCompleted ? 0 : 1);
 
         /// <summary>
         /// 実行中の圧縮プロセス数
@@ -353,7 +394,7 @@ if (filenameEncoding == null)
         /// <summary>
         /// ファイル総件数
         /// </summary>
-        public int TotalFileCount => directoryEntories;
+        public int TotalFileCount => directoryEntries;
 
 #endregion
 
@@ -583,7 +624,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddDirectory(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList)
         {
-            AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList).Wait();
+            AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -639,7 +680,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileStream(string storeFileName, Stream storeStream)
         {
-            AddFileStreamAsync(storeFileName, storeStream).Wait();
+            AddFileStreamAsync(storeFileName, storeStream).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -674,7 +715,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileStream(string storeFileName, Stream storeStream, DateTime timeStamp)
         {
-            AddFileStreamAsync(storeFileName, storeStream, timeStamp).Wait();
+            AddFileStreamAsync(storeFileName, storeStream, timeStamp).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -713,7 +754,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddStreamFile(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
         {
-            AddFileStreamAsync(storeFileName, storeStream, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).Wait();
+            AddFileStreamAsync(storeFileName, storeStream, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -742,7 +783,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
         {
-            return AddZipFileAsync(storeFileName, storeStream, Password, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken);
+            return AddZipFileAsync(storeFileName, storeStream, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken);
         }
 
         /// <summary>
@@ -753,7 +794,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileBytes(string storeFileName, byte[] byteData)
         {
-            AddFileBytesAsync(storeFileName, byteData).Wait();
+            AddFileBytesAsync(storeFileName, byteData).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -788,7 +829,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileBytes(string storeFileName, byte[] byteData, DateTime timeStamp)
         {
-            AddFileBytesAsync(storeFileName, byteData, timeStamp).Wait();
+            AddFileBytesAsync(storeFileName, byteData, timeStamp).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -827,7 +868,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileBytes(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
         {
-            AddFileBytesAsync(storeFileName, byteData, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).Wait();
+            AddFileBytesAsync(storeFileName, byteData, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -856,7 +897,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
         {
-            return AddZipFileAsync(storeFileName, byteData, Password, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken);
+            return AddZipFileAsync(storeFileName, byteData, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken);
         }
 
         /// <summary>
@@ -866,7 +907,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFilePath(string filePath)
         {
-            AddFilePathAsync(filePath).Wait();
+            AddFilePathAsync(filePath).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -899,7 +940,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFilePath(string storeFileName, string filePath)
         {
-            AddFilePathAsync(storeFileName, filePath).Wait();
+            AddFilePathAsync(storeFileName, filePath).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -933,7 +974,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileInfo(FileInfo fileInfo)
         {
-            AddFileInfoAsync(fileInfo).Wait();
+            AddFileInfoAsync(fileInfo).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -965,7 +1006,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileInfo(string storeFileName, FileInfo fileInfo)
         {
-            AddFileInfoAsync(storeFileName, fileInfo).Wait();
+            AddFileInfoAsync(storeFileName, fileInfo).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -995,12 +1036,12 @@ if (filenameEncoding == null)
 
             if (fileInfo.FullName.Equals(fileInfo.FullName.TrimEnd()))
             {
-                return AddZipFileAsync(storeFileName, fileInfo, Password, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken);
+                return AddZipFileAsync(storeFileName, fileInfo, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken);
             }
 
             // 最後がSPACEで終了しているファイル名対応
             FileInfo fileInfo2 = new FileInfo($"{fileInfo.FullName}.");
-            return AddZipFileAsync(storeFileName, fileInfo2, Password, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken);
+            return AddZipFileAsync(storeFileName, fileInfo2, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken);
         }
 
         #endregion
@@ -1016,8 +1057,8 @@ if (filenameEncoding == null)
         public void Finish()
         {
             Task.Run(async () => {
-                await FinishAsync();
-            }).Wait();
+                await FinishAsync().ConfigureAwait(false); 
+            }).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -1057,113 +1098,121 @@ if (filenameEncoding == null)
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
 
-            // queueの書き込みタスクをwait
-            await writeStreamTask;
-            if (writeStreamTask.Exception != null)
+            // 書庫作成終了処理
+            try
             {
-                throw writeStreamTask.Exception;
-            }
-            writeStreamTask.Dispose();
+                // queueの書き込みタスクをwait
+                await writeStreamTask.ConfigureAwait(false); 
+                if (writeStreamTask.Exception != null)
+                {
+                    throw writeStreamTask.Exception;
+                }
+                writeStreamTask.Dispose();
 
-            // queueに残りが無いか念のため処理する
-            await WriteBaseStreamAsync(TaskAbort.Create, cancelToken);
-            if (writeStreamTask.Exception != null)
-            {
-                throw writeStreamTask.Exception;
-            }
+                // queueに残りが無いか念のため処理する
+                await WriteBaseStreamAsync(TaskAbort.Create, cancelToken).ConfigureAwait(false);
+                if (writeStreamTask.Exception != null)
+                {
+                    throw writeStreamTask.Exception;
+                }
+                if (partInfoDic.Count > 0)
+                {
+                    // queueに残りがある場合、例外を投げる
+                    throw new InvalidOperationException("Internal queue error.");
+                }
 
-            // CentoralDirectoryの開始位置待避
-            long centralDirPos = baseStream.Position;
+                // CentoralDirectoryの開始位置待避
+                long centralDirPos = baseStream.Position;
 
-            // 出力用配列作成
-            List<PartInfoClass> partInfos = new List<PartInfoClass>();
-            partInfos.AddRange(partInfoList.ToArray());
-            if (this.StoreInOrderAdded)
-            {
-                // 追加順にソートする
-                partInfos.Sort((a, b) => {
-                    if (a.Id < b.Id) return -1;
-                    else if (a.Id > b.Id) return 1;
-                    return 0;
-                });
-            }
-
-            // PK0102(CentoralDirectory)出力
-            long centralDirLength = 0L;
-            foreach (PartInfoClass partinfo in partInfos)
-            {
-                byte[] pk0102Bytes = partinfo.Pk0102Header.GetBytes();
+                // PK0102(CentoralDirectory)出力
+                long centralDirLength = 0L;
+                foreach (PartInfoClass partinfo in partInfoList)
+                {
+                    byte[] pk0102Bytes = partinfo.Pk0102Header.GetBytes();
 #if NET6_0_OR_GREATER
-                await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0102Bytes), cancelToken);
+                    await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0102Bytes), cancelToken).ConfigureAwait(false);
 #else
-                await baseStream.WriteAsync(pk0102Bytes, 0, pk0102Bytes.Length, cancelToken);
+                    await baseStream.WriteAsync(pk0102Bytes, 0, pk0102Bytes.Length, cancelToken).ConfigureAwait(false);
 #endif
-                centralDirLength += pk0102Bytes.LongLength;
-            }
+                    centralDirLength += pk0102Bytes.LongLength;
+                }
 
-            // PK0506(EndOfCentralDirectory) 編集
-            ZipHeader.PK0506Info pk0506Header = EditPK0506(centralDirPos, centralDirLength);
+                // PK0506(EndOfCentralDirectory) 編集
+                ZipHeader.PK0506Info pk0506Header = EditPK0506(centralDirPos, centralDirLength);
 
-            // PK0606及びPK0607の作成判定
-            bool writeZip64EndOfCentralDirectory = false;
-            if (partInfoList.Count > Int16.MaxValue ||
-                centralDirLength >= UInt32.MaxValue ||
-                centralDirPos >= UInt32.MaxValue)
-            {
-                // 格納件数0x8000件以上
-                // ディレクトリ長0xFFFFFFFF以上(4G)
-                // 開始位置0xFFFFFFFF以上(4G)
-                writeZip64EndOfCentralDirectory = true;
-            }
+                // PK0606及びPK0607の作成判定
+                bool writeZip64EndOfCentralDirectory = false;
+                if (partInfoList.Count > Int16.MaxValue ||
+                    centralDirLength >= UInt32.MaxValue ||
+                    centralDirPos >= UInt32.MaxValue)
+                {
+                    // 格納件数0x8000件以上
+                    // ディレクトリ長0xFFFFFFFF以上(4G)
+                    // 開始位置0xFFFFFFFF以上(4G)
+                    writeZip64EndOfCentralDirectory = true;
+                }
 
-            // 編集条件を満たした場合、PK0606とPK0607編集
-            if (writeZip64EndOfCentralDirectory)
-            {
-                // PK0606 Zip64EndOfCentralDirectory
-                ZipHeader.PK0606Info pk0606 = new ZipHeader.PK0606Info();
-                pk0606.Signature = SIG_PK0606;
-                pk0606.Madever = (UInt16)0x2du;
-                pk0606.Needver = (UInt16)0x2du;
-                pk0606.Disknum = 0u;
-                pk0606.Startdisknum = 0u;
-                pk0606.Diskdirentry = (UInt64)partInfoList.Count;
-                pk0606.Direntry = (UInt64)partInfoList.Count;
-                pk0606.Dirsize = (UInt64)centralDirLength;
-                pk0606.Startpos = (UInt64)centralDirPos;
+                // 編集条件を満たした場合、PK0606とPK0607編集
+                if (writeZip64EndOfCentralDirectory)
+                {
+                    // PK0606 Zip64EndOfCentralDirectory
+                    ZipHeader.PK0606Info pk0606 = new ZipHeader.PK0606Info();
+                    pk0606.Signature = SIG_PK0606;
+                    pk0606.Madever = (UInt16)0x2du;
+                    pk0606.Needver = (UInt16)0x2du;
+                    pk0606.Disknum = 0u;
+                    pk0606.Startdisknum = 0u;
+                    pk0606.Diskdirentry = (UInt64)partInfoList.Count;
+                    pk0606.Direntry = (UInt64)partInfoList.Count;
+                    pk0606.Dirsize = (UInt64)centralDirLength;
+                    pk0606.Startpos = (UInt64)centralDirPos;
 
-                // PK0607 Zip64EndOfCentralDirectoryLocator
-                ZipHeader.PK0607Info pk0607 = new ZipHeader.PK0607Info();
-                pk0607.Signature = SIG_PK0607;
-                pk0607.Startdisknum = 0u;
-                pk0607.Startpos = (UInt64)baseStream.Position;
-                pk0607.Totaldisks = 1u;
+                    // PK0607 Zip64EndOfCentralDirectoryLocator
+                    ZipHeader.PK0607Info pk0607 = new ZipHeader.PK0607Info();
+                    pk0607.Signature = SIG_PK0607;
+                    pk0607.Startdisknum = 0u;
+                    pk0607.Startpos = (UInt64)baseStream.Position;
+                    pk0607.Totaldisks = 1u;
 
-                // PK0606,PK0607出力
-                byte[] pk0606data = pk0606.GetBytes();
-                byte[] pk0607data = pk0607.GetBytes();
+                    // PK0606,PK0607出力
+                    byte[] pk0606data = pk0606.GetBytes();
+                    byte[] pk0607data = pk0607.GetBytes();
 #if NET6_0_OR_GREATER
-                await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0606data), cancelToken);
-                await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0607data), cancelToken);
+                    await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0606data), cancelToken).ConfigureAwait(false);
+                    await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0607data), cancelToken).ConfigureAwait(false);
 #else
-                await baseStream.WriteAsync(pk0606data, 0, pk0606data.Length, cancelToken);
-                await baseStream.WriteAsync(pk0607data, 0, pk0607data.Length, cancelToken);
+                    await baseStream.WriteAsync(pk0606data, 0, pk0606data.Length, cancelToken).ConfigureAwait(false);
+                    await baseStream.WriteAsync(pk0607data, 0, pk0607data.Length, cancelToken).ConfigureAwait(false);
 #endif
-            }
+                }
 
-            // PK0506(EndOfCentralDirectory)出力
-            byte[] pk0506data = pk0506Header.GetBytes();
+                // PK0506(EndOfCentralDirectory)出力
+                byte[] pk0506data = pk0506Header.GetBytes();
 #if NET6_0_OR_GREATER
-            await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0506data), cancelToken);
+                await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0506data), cancelToken).ConfigureAwait(false);
 #else
-            await baseStream.WriteAsync(pk0506data, 0, pk0506data.Length, cancelToken);
+                await baseStream.WriteAsync(pk0506data, 0, pk0506data.Length, cancelToken).ConfigureAwait(false);
 #endif
-            await baseStream.FlushAsync(cancelToken);
-            baseStream = null;
+                await baseStream.FlushAsync(cancelToken).ConfigureAwait(false);
 
-            if (isStreamDispose)
+                closedZipFileSize = baseStream.WriteCount; // 出力バイト数を取得
+
+            }
+            catch (Exception)
             {
-                baseFileStream?.Dispose();
-                baseFileStream = null;
+                throw;
+            }
+            finally
+            {
+                // baseStreamは出力バイトカウント用のWriteCountStreamなので、Disposeしない
+                baseStream = null;
+
+                // baseFileStreamはファイル名指定で初期化時にファイルを作成した場合、Disposeする
+                if (isStreamDispose)
+                {
+                    baseFileStream?.Dispose();
+                    baseFileStream = null;
+                }
             }
 
 #if DEBUG
@@ -1286,7 +1335,7 @@ if (filenameEncoding == null)
 #endif
             Task t = Task.Run(async () =>
             {
-                await AddZipDirectoryRecuriveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
+                await AddZipDirectoryRecuriveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken).ConfigureAwait(false);
 #if DEBUG
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : AddZipDirectoryRecuriveAsync async task end.");
 #endif
@@ -1334,35 +1383,6 @@ if (filenameEncoding == null)
                 return string.Compare(a.Name, b.Name);
             });
 
-            // ディレクトリの処理
-            foreach (DirectoryInfo targetDirectory in dirList)
-            {
-
-                // 格納対象外ディレクトリ判定
-                if (excludeDirectoryNameList != null && excludeDirectoryNameList.Count > 0)
-                {
-                    bool isExclude = false;
-                    foreach (Regex reg in excludeDirectoryNameList)
-                    {
-                        if (reg.IsMatch(targetDirectory.Name))
-                        {
-                            isExclude = true;
-                            break;
-                        }
-                    }
-                    if (isExclude)
-                    {
-                        continue;
-                    }
-                }
-
-                // サブディレクトリを再帰的に処理
-                string subDir = $"{baseDir}{targetDirectory.Name}/";
-                AddZipDirectory(subDir, di.CreationTime, di.LastWriteTime, di.LastAccessTime, abort, cancelToken, this.StoreDirectories);
-                taskList.Add(AddZipDirectoryRecuriveMainAsync(subDir, $"{targetDirectory.FullName}{dirSplitChars[0]}", excludeFileNameList, excludeDirectoryNameList, abort, cancelToken));
-            }
-
-
             // ファイルの処理
             foreach (FileInfo targetFile in fileList)
             {
@@ -1393,8 +1413,37 @@ if (filenameEncoding == null)
                 {
                     fi = new FileInfo($"{targetFile.FullName}.");
                 }
-                taskList.Add(AddZipFileAsync(subFile, fi, Password, CompressionOption, EncryptionOption, targetFile.CreationTime, targetFile.LastWriteTime, targetFile.LastAccessTime, abort, cancelToken));
+                taskList.Add(AddZipFileAsync(subFile, fi, CompressionOption, EncryptionOption, targetFile.CreationTime, targetFile.LastWriteTime, targetFile.LastAccessTime, abort, cancelToken));
             }
+
+            // ディレクトリの処理
+            foreach (DirectoryInfo targetDirectory in dirList)
+            {
+
+                // 格納対象外ディレクトリ判定
+                if (excludeDirectoryNameList != null && excludeDirectoryNameList.Count > 0)
+                {
+                    bool isExclude = false;
+                    foreach (Regex reg in excludeDirectoryNameList)
+                    {
+                        if (reg.IsMatch(targetDirectory.Name))
+                        {
+                            isExclude = true;
+                            break;
+                        }
+                    }
+                    if (isExclude)
+                    {
+                        continue;
+                    }
+                }
+
+                // サブディレクトリを再帰的に処理
+                string subDir = $"{baseDir}{targetDirectory.Name}/";
+                //AddZipDirectory(subDir, targetDirectory.CreationTime, targetDirectory.LastWriteTime, targetDirectory.LastAccessTime, abort, cancelToken, this.StoreDirectories);
+                taskList.Add(AddZipDirectoryRecuriveMainAsync(subDir, $"{targetDirectory.FullName}{dirSplitChars[0]}", excludeFileNameList, excludeDirectoryNameList, abort, cancelToken));
+            }
+
             return Task.WhenAll(taskList);
 
         }
@@ -1443,6 +1492,7 @@ if (filenameEncoding == null)
                     arcDirectoryName.Append($"{dirName}/");
                     if (store == true)
                         AddZipDirectorySub(arcDirectoryName.ToString(), creationTimeStamp, lastWriteTimeStamp, lastAccessTimeStamp, abort, cancelToken);
+                
                 }
 
                 // 辞書に追加
@@ -1476,7 +1526,7 @@ if (filenameEncoding == null)
 
                 // PartInfo のディレクトリ用編集
                 PartInfoClass partInfo = new PartInfoClass();
-                partInfo.Id = directoryEntories++;
+                partInfo.Id = Interlocked.Increment(ref directoryEntries);
                 partInfo.FileName = ShareMethodClass.EncodingGetBytes(directoryName, ZipFileNameEncoding);
                 partInfo.FullName = directoryName;
                 partInfo.FileAttribute = FileAttributes.Directory;
@@ -1495,7 +1545,6 @@ if (filenameEncoding == null)
 
         private Task AddZipFileAsync(string fileName,
                              FileInfo fi,
-                             string password,
                              COMPRESSION_OPTION compressionOption,
                              ENCRYPTION_OPTION encryptionOption,
                              DateTime fileCreateTimestamp,
@@ -1503,7 +1552,7 @@ if (filenameEncoding == null)
                              DateTime fileAccessTimestamp,
                              CancellationToken cancelToken)
         {
-            return AddZipFileAsync(fileName, fi, password, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, TaskAbort.Create, cancelToken);
+            return AddZipFileAsync(fileName, fi, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, TaskAbort.Create, cancelToken);
         }
 
         /// <summary>
@@ -1511,7 +1560,6 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="fileName">ファイル名</param>
         /// <param name="fi">追加するファイルの情報</param>
-        /// <param name="password">パスワード(Nothingなら暗号化なし)</param>
         /// <param name="compressionOption"></param>
         /// <param name="encryptionOption"></param>
         /// <param name="fileCreateTimestamp">ファイルの作成日時</param>
@@ -1522,7 +1570,6 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         private Task AddZipFileAsync(string fileName,
                                      FileInfo fi,
-                                     string password,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
                                      DateTime fileCreateTimestamp,
@@ -1537,14 +1584,14 @@ if (filenameEncoding == null)
                 throw new FileNotFoundException($"Target file does not exist. path={fi.FullName}");
             }
 
-            PartInfoClass partInfo = EditPartInfo(fileName, password, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
+            PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
             return Task.Run(async () =>
             {
                 //using(FileStream fs = fi.OpenRead())
                 using (FileStream fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
-                    await this.AddZipFileAsyncSemaphore(partInfo, fs, abort, cancelToken);
+                    await this.AddZipFileAsyncSemaphore(partInfo, fs, abort, cancelToken).ConfigureAwait(false);
                 }
             }, cancelToken);
 
@@ -1555,7 +1602,6 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="fileName">ファイル名</param>
         /// <param name="byteData">追加するバイト配列</param>
-        /// <param name="password">パスワード(Nothingなら暗号化なし)</param>
         /// <param name="compressionOption"></param>
         /// <param name="encryptionOption"></param>
         /// <param name="fileCreateTimestamp">ファイルの作成日時</param>
@@ -1566,7 +1612,6 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         private Task AddZipFileAsync(string fileName,
                                      byte[] byteData,
-                                     string password,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
                                      DateTime fileCreateTimestamp,
@@ -1575,13 +1620,13 @@ if (filenameEncoding == null)
                                      TaskAbort abort,
                                      CancellationToken cancelToken)
         {
-            PartInfoClass partInfo = EditPartInfo(fileName, password, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
+            PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
             return Task.Run(async () =>
             {
                 using (MemoryStream ms = new MemoryStream(byteData, false))
                 {
-                    await this.AddZipFileAsyncSemaphore(partInfo, ms, abort, cancelToken);
+                    await this.AddZipFileAsyncSemaphore(partInfo, ms, abort, cancelToken).ConfigureAwait(false);
                 }
             }, cancelToken);
 
@@ -1592,7 +1637,6 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="fileName">ファイル名</param>
         /// <param name="fileStream">追加するファイルのストリーム</param>
-        /// <param name="password">パスワード(Nothingなら暗号化なし)</param>
         /// <param name="compressionOption"></param>
         /// <param name="encryptionOption"></param>
         /// <param name="fileCreateTimestamp">ファイルの作成日時</param>
@@ -1603,7 +1647,6 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         private Task AddZipFileAsync(string fileName,
                                      Stream fileStream,
-                                     string password,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
                                      DateTime fileCreateTimestamp,
@@ -1613,11 +1656,11 @@ if (filenameEncoding == null)
                                      CancellationToken cancelToken)
         {
 
-            PartInfoClass partInfo = EditPartInfo(fileName, password, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
+            PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
             return Task.Run(async () =>
             {
-                await this.AddZipFileAsyncSemaphore(partInfo, fileStream, abort, cancelToken);
+                await this.AddZipFileAsyncSemaphore(partInfo, fileStream, abort, cancelToken).ConfigureAwait(false);
             }, cancelToken);
 
         }
@@ -1626,7 +1669,6 @@ if (filenameEncoding == null)
         /// PartInfo編集
         /// </summary>
         /// <param name="fileName"></param>
-        /// <param name="password"></param>
         /// <param name="compressionOption"></param>
         /// <param name="encryptionOption"></param>
         /// <param name="fileCreateTimestamp"></param>
@@ -1636,7 +1678,14 @@ if (filenameEncoding == null)
         /// <param name="abort"></param>
         /// <returns></returns>
         /// <remarks></remarks>
-        private PartInfoClass EditPartInfo(string fileName, string password, COMPRESSION_OPTION compressionOption, ENCRYPTION_OPTION encryptionOption, DateTime fileCreateTimestamp, DateTime fileModifyTimestamp, DateTime fileAccessTimestamp, TaskAbort abort, CancellationToken cancelToken)
+        private PartInfoClass EditPartInfo(string fileName, 
+                                           COMPRESSION_OPTION compressionOption, 
+                                           ENCRYPTION_OPTION encryptionOption, 
+                                           DateTime fileCreateTimestamp, 
+                                           DateTime fileModifyTimestamp, 
+                                           DateTime fileAccessTimestamp, 
+                                           TaskAbort abort, 
+                                           CancellationToken cancelToken)
         {
             // ディレクトリとファイル名の分離
             string arcFilePath = Path.GetDirectoryName(fileName);
@@ -1656,7 +1705,7 @@ if (filenameEncoding == null)
 
             // PartInfo編集
             PartInfoClass partInfo = new PartInfoClass();
-            partInfo.Id = directoryEntories++;
+            partInfo.Id = Interlocked.Increment(ref directoryEntries);
             partInfo.FileName = ShareMethodClass.EncodingGetBytes(arcFileName, ZipFileNameEncoding);
             partInfo.FullName = arcFileName;
             partInfo.FileAttribute = FileAttributes.Archive;
@@ -1668,9 +1717,10 @@ if (filenameEncoding == null)
             partInfo.EncryptionOption = encryptionOption;
             partInfo.WriteDataDescriptor = false;
 
-            if (password != null)
+            if (this.bytePassword != null)
             {
-                partInfo.Password = ShareMethodClass.EncodingGetBytes(password, ZipFileNameEncoding);
+
+                partInfo.Password = this.bytePassword;
             }
 
             // 圧縮対象外判定
@@ -1693,7 +1743,10 @@ if (filenameEncoding == null)
             return partInfo;
         }
 
-        private async Task AddZipFileAsyncSemaphore(PartInfoClass partInfo, Stream fileStream, TaskAbort abort, CancellationToken cancelToken)
+        private async Task AddZipFileAsyncSemaphore(PartInfoClass partInfo, 
+                                                    Stream fileStream, 
+                                                    TaskAbort abort, 
+                                                    CancellationToken cancelToken)
         {
 
 #if DEBUG
@@ -1704,7 +1757,7 @@ if (filenameEncoding == null)
             // セマフォ獲得待ち
             try
             {
-                await this.addZipSemaphore.WaitAsync(cancelToken);
+                await this.addZipSemaphore.WaitAsync(cancelToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -1744,7 +1797,7 @@ if (filenameEncoding == null)
                 }
 #endif
 
-                await this.AddZipFileAsyncSubAsync(partInfo, fileStream, abort, cancelToken);
+                await this.AddZipFileAsyncSubAsync(partInfo, fileStream, abort, cancelToken).ConfigureAwait(false);
             }
             catch (TaskAbort.TaskAbortException) { return; }
             catch (Exception)
@@ -1754,15 +1807,12 @@ if (filenameEncoding == null)
             }
             finally
             {
+
                 // 処理中リストから削除
                 inprocFile.TryRemove(partInfo, out bool dmy);
 
                 // セマフォリリース
-                int resCount = 0;
-                if (this.addZipSemaphore != null)
-                {
-                    resCount = this.addZipSemaphore.Release();
-                }
+                int resCount = this.addZipSemaphore.Release();
 
 #if DEBUG
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : Semaphore Release. elapsed={stp.Elapsed.TotalMilliseconds}ms Count={resCount}");
@@ -1817,8 +1867,8 @@ if (filenameEncoding == null)
             // tempStream書き込み(圧縮、圧縮前後のサイズ取得、CRC32計算)
             Stream tempStream = tsm.GetTempStream(0);
             //ZipHeader.PK0708Info pk0708Work = await WriteTempStreamAsync(fileStream, tempStream, partInfo, cancelToken);
-            partInfo.Pk0708Header = await WriteTempStreamAsync(fileStream, tempStream, partInfo, cancelToken);
-            await tempStream.FlushAsync(cancelToken);
+            partInfo.Pk0708Header = await WriteTempStreamAsync(fileStream, tempStream, partInfo, cancelToken).ConfigureAwait(false);
+            await tempStream.FlushAsync(cancelToken).ConfigureAwait(false);
             // 入力ファイルサイズ0byte対応
             if (partInfo.Pk0708Header.UncompsizeLong == 0)
             {
@@ -1866,8 +1916,8 @@ if (filenameEncoding == null)
                             // Traditional PKWARE Encryption
                             using (ZipCryptStream encryptionStream = new ZipCryptStream(tempStream2, partInfo.Password, partInfo.Pk0708Header.Crc32, ZipCryptStream.StreamMode.ENCRYPT))
                             {
-                                await tempStream.CopyToAsync(encryptionStream, 81920, cancelToken);
-                                await encryptionStream.FlushAsync(cancelToken);
+                                await tempStream.CopyToAsync(encryptionStream, 81920, cancelToken).ConfigureAwait(false);
+                                await encryptionStream.FlushAsync(cancelToken).ConfigureAwait(false);
                             }
                             break;
                         case ENCRYPTION_OPTION.AES128:
@@ -1876,8 +1926,8 @@ if (filenameEncoding == null)
                             // AES暗号化
                             using (ZipAesCryptStream encryptionStream = new ZipAesCryptStream(tempStream2, partInfo.EncryptionOption, partInfo.Password, ZipAesCryptStream.StreamMode.ENCRYPT,tempStream.Length))
                             {
-                                await tempStream.CopyToAsync(encryptionStream, 81920, cancelToken);
-                                await encryptionStream.FlushAsync (cancelToken);
+                                await tempStream.CopyToAsync(encryptionStream, 81920, cancelToken).ConfigureAwait(false);
+                                await encryptionStream.FlushAsync(cancelToken).ConfigureAwait(false);
                             }
                             // AESの場合CRC32を記録しない
                             partInfo.Pk0708Header.Crc32 = 0;
@@ -1895,7 +1945,9 @@ if (filenameEncoding == null)
                 }
                 finally
                 {
+
                     tempStream.Dispose();
+                   
                 }
             }
 
@@ -1918,16 +1970,16 @@ if (filenameEncoding == null)
                         // Deflate圧縮
                         using (DeflateStream compressionStream = new DeflateStream(tempStream, this.CompressionLevel, true))
                         {
-                            await crcStream.CopyToAsync(compressionStream, 81920, cancelToken);
-                            await compressionStream.FlushAsync(cancelToken);
+                            await crcStream.CopyToAsync(compressionStream, 81920, cancelToken).ConfigureAwait(false);
+                            await compressionStream.FlushAsync(cancelToken).ConfigureAwait(false);
                         }
                         pk0708.UncompsizeLong = crcStream.IoCount;
                         pk0708.Crc32 = crcStream.Crc32;
                         break;
                     default:
                         // 圧縮無し
-                        await crcStream.CopyToAsync(tempStream, 81920, cancelToken);
-                        await tempStream.FlushAsync(cancelToken);
+                        await crcStream.CopyToAsync(tempStream, 81920, cancelToken).ConfigureAwait(false);
+                        await tempStream.FlushAsync(cancelToken).ConfigureAwait(false);
                         pk0708.UncompsizeLong = crcStream.IoCount;
                         pk0708.Crc32 = crcStream.Crc32;
                         break;
@@ -1951,12 +2003,12 @@ if (filenameEncoding == null)
         {
 
             // Info-ZIP Unicode Path Extra Field (0x7075)
-            // Utf8FileNameEnabledが設定されていて、ZipFileEncodingがUTF8以外の場合に作成する。
+            // Utf8FileNameEnabledが設定されていて、ZipFileEncodingがUTF8以外の場合にutf-8とエンコード結果が異なる場合に作成する
             if (this.StoreUtf8Filename && 
                 this.ZipFileNameEncoding.CodePage != ShareMethodClass.Utf8Encoding.CodePage)
             {
                 
-                if (ShareMethodClass.ByteArrayCompare(ShareMethodClass.EncodingGetBytes(partInfo.FullName, ShareMethodClass.Utf8Encoding), ShareMethodClass.EncodingGetBytes(partInfo.FullName, ShareMethodClass.AsciiEncoding)) == false)
+                if (ShareMethodClass.ByteArrayCompare(partInfo.FileName,ShareMethodClass.EncodingGetBytes(partInfo.FullName, ShareMethodClass.Utf8Encoding)) == false)
                 {
                     ZipHeader.UnicodePathExtraDataField unicodePath = new ZipHeader.UnicodePathExtraDataField();
                     unicodePath.UnicodeName = partInfo.FullName;
@@ -2247,8 +2299,13 @@ if (filenameEncoding == null)
 
         private readonly ConcurrentQueue<AsyncQueue> procQueueList = new ConcurrentQueue<AsyncQueue>();
         private readonly object writeBaseStreamLock = new object();
+        private readonly object partInfoDicLock = new object();
         private Task writeStreamTask = Task.CompletedTask;
-        //private bool writreamExecute = false;
+        /// <summary>キューに依頼順に登録するためのDictionary</summary>
+        private readonly Dictionary<int, AsyncQueue> partInfoDic = new Dictionary<int, AsyncQueue>();
+        private int partInfoDicCount = 0;
+        /// <summary>キューへの追加回数</summary>
+        private int addQueueCount = 0;
 
         /// <summary>
         /// ベースストリームへの書き出しキュー追加
@@ -2259,8 +2316,33 @@ if (filenameEncoding == null)
         /// <param name="cancelToken"></param>
         private void AddQueue(PartInfoClass partInfo, Stream stream, TaskAbort abort, CancellationToken cancelToken)
         {
-            // 格納ファイルをキューに追加
-            procQueueList.Enqueue(new AsyncQueue(partInfo, stream));
+            if (this.StoreInOrderAdded)
+            {
+                bool isAddQueue = false;
+                lock (partInfoDicLock)
+                {
+                    // 辞書へ追加
+                    partInfoDic.Add(partInfo.Id, new AsyncQueue(partInfo,stream));
+                    // 依頼順にキューに追加
+                    while (partInfoDic.ContainsKey(addQueueCount))
+                    {
+                        procQueueList.Enqueue(partInfoDic[addQueueCount]);
+                        partInfoDic.Remove(addQueueCount);
+                        addQueueCount++;
+                        isAddQueue = true;
+                    }
+                    partInfoDicCount = partInfoDic.Count;
+                }
+                if (!isAddQueue)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                // 格納ファイルをキューに追加
+                procQueueList.Enqueue(new AsyncQueue(partInfo, stream));
+            }
 
 #if DEBUG
             Stopwatch stp = Stopwatch.StartNew();
@@ -2275,8 +2357,6 @@ if (filenameEncoding == null)
                     {
                         throw writeStreamTask.Exception;
                     }
-                    // 念のためwait
-                    writeStreamTask.Wait(cancelToken);
                     writeStreamTask.Dispose();
                     writeStreamTask = WriteBaseStreamAsync(abort, cancelToken);
                 }
@@ -2368,9 +2448,9 @@ if (filenameEncoding == null)
                         // PK0304出力
                         byte[] pk0304data = partInfo.Pk0304Header.GetBytes();
 #if NET6_0_OR_GREATER
-                        await this.baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0304data), cancelToken);
+                        await this.baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0304data), cancelToken).ConfigureAwait(false);
 #else
-                        await this.baseStream.WriteAsync(pk0304data, 0, pk0304data.Length, cancelToken);
+                        await this.baseStream.WriteAsync(pk0304data, 0, pk0304data.Length, cancelToken).ConfigureAwait(false);
 #endif
 
                         // ファイルストリーム出力(ストリームがnullなのはディレクトリの場合)
@@ -2378,8 +2458,8 @@ if (filenameEncoding == null)
                         {
 
                             // 圧縮/暗号化済のストリーム出力
-                            await queue.QueueStream.CopyToAsync(baseStream, 81920, cancelToken);
-                            await baseStream.FlushAsync(cancelToken);
+                            await queue.QueueStream.CopyToAsync(baseStream, 81920, cancelToken).ConfigureAwait(false);
+                            await baseStream.FlushAsync(cancelToken).ConfigureAwait(false);
                         }
 
                         partInfoList.Enqueue(partInfo);
@@ -2452,19 +2532,24 @@ if (filenameEncoding == null)
                     //Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : Dispose()");
 #endif
 
-                    // Dispose内でFinishを自動実行するのは難しいのでやめておく
-                    // 
-                    //// 書庫出力タスク起動中の場合waitする
-                    //if (writeStreamTask != null)
-                    //               {
-                    //	writeStreamTask.Wait();
-                    //               }
+                    if(this.bytePassword != null)
+                    {
+                        // パスワードのバイト配列をクリア
+                        if (this.bytePassword.Length > 0)
+                        {
+                            Array.Clear(this.bytePassword, 0, this.bytePassword.Length);
+                        }
+                    }   
+                    this.bytePassword = null;
 
-                    //// Finishが実行されていない場合は実行する
-                    //if (isFinished == false)
-                    //{
-                    //	this.Finish();
-                    //               }
+                    foreach (var queue in this.partInfoDic.Values)
+                    {
+                        try
+                        {
+                            queue.QueueStream?.Dispose();
+                        }
+                        catch { }
+                    }   
 
                     foreach (var queue in this.procQueueList)
                     {

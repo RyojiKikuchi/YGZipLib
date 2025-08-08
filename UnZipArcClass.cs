@@ -41,7 +41,8 @@ namespace YGMailLib.Zip
         /// <summary>
         /// EndOfCentralDirectory(PK0506)検索用のバッファサイズ
         /// </summary>
-        private const int PK0506_SEARCH_BUF_SIZE = 71679;
+		/// <remarks>ZIPコメント(65535)+EndOnCentralDirectory(22)+4</remarks>
+        private const int PK0506_SEARCH_BUF_SIZE = 65561;
 
 		internal enum HeaderComptype : UInt16
 		{
@@ -59,7 +60,7 @@ namespace YGMailLib.Zip
 		/// <summary>書庫およびパスワードのエンコーディング</summary>
 		private Encoding defaultZipTextEncoding = ShareMethodClass.AnsiEncoding;
 		/// <summary>パスワード付きファイルの復号に使用するパスワード</summary>
-		private string defaultPassword = null;
+		private byte[] defaultPassword = null;
 
 		/// <summary>入力情報を保持する</summary>
 		private readonly UnzipTemp unzipTempStream = null;
@@ -114,7 +115,20 @@ namespace YGMailLib.Zip
 		{
 			set
 			{
-				defaultPassword = value;
+                if (defaultPassword != null && defaultPassword.Length > 0)
+                    Array.Clear(defaultPassword, 0, defaultPassword.Length);
+                defaultPassword = null;
+                if (value == null)
+                {
+                    return;
+                }
+                byte[] p = ShareMethodClass.EncodingGetBytes(value, this.ZipFileNameEncoding);
+
+                if (p.Length > 0xFFFF)
+                {
+                    throw new ArgumentException("Password length must be less than 65536 bytes.", nameof(value));
+                }
+                defaultPassword = p;
 			}
 		}
 
@@ -356,20 +370,13 @@ namespace YGMailLib.Zip
 			private bool compTypeOv = false;
 			private Encoding utf8Encoding = null;
 			private readonly UnzipTemp unzipTempStream = null;
-			private readonly long _Position = 0;
 
 			#region "Properties"
 
 			/// <summary>
 			/// CentralDirectoryの開始位置
 			/// </summary>
-			internal long Position
-			{
-				get
-				{
-					return _Position;
-				}
-			}
+			internal long Position { get; private set; } = -1;
 
             /// <summary>
             /// ローカルヘッダの開始位置
@@ -961,7 +968,7 @@ namespace YGMailLib.Zip
 			/// <param name="unzipTempStream"></param>
             internal CentralDirectoryInfo(long pos, ZipHeader.PK0102Info centralDirectory, Encoding enc, UnzipTemp unzipTempStream)
             {
-				this._Position = pos;
+				this.Position = pos;
 				defaultTextEncoding = null;
 				compTypeOv = false;
 				this.centralDirectory = centralDirectory;
@@ -978,10 +985,7 @@ namespace YGMailLib.Zip
 				Stream st = unzipTempStream.GetZipStream();
 				st.Position = this.LocalHeaderPos;
 				ZipHeader.PK0304Info pk0304 = new ZipHeader.PK0304Info(st);
-				if(_LocalHeader != null)
-				{
-					_LocalHeader = pk0304;
-				}
+				_LocalHeader = pk0304;
 				return st;
             }
 
@@ -1035,7 +1039,7 @@ namespace YGMailLib.Zip
                 }
             }
 
-            private Dictionary<ZipHeader.ExtraDataId, byte[]> SplitExtraFields(UInt16 extraLen,  byte[] extraFields)
+            private static Dictionary<ZipHeader.ExtraDataId, byte[]> SplitExtraFields(UInt16 extraLen,  byte[] extraFields)
             {
                 Dictionary<ZipHeader.ExtraDataId, byte[]>  dic = new Dictionary<ZipHeader.ExtraDataId, byte[]>();
                 int pos = 0;
@@ -1065,7 +1069,7 @@ namespace YGMailLib.Zip
                     dic.Add((ZipHeader.ExtraDataId)header, extraData.ToArray());
                     pos += (int)dataSize + 4;
                 }
-                while (pos < centralDirectory.Extralen);
+                while (pos < extraLen);
                 return dic;
             }
 
@@ -1220,18 +1224,18 @@ namespace YGMailLib.Zip
 		/// <param name="outFilePath">出力先ファイルのパス</param>
 		public void PutFile(CentralDirectoryInfo centralDirectory, string outFilePath)
 		{
-			PutFile(centralDirectory, outFilePath, defaultPassword);
-		}
+            PutFileAsync(centralDirectory, new FileInfo(outFilePath), defaultPassword, TaskAbort.Create, CancellationToken.None).GetAwaiter().GetResult();
+        }
 
-		/// <summary>
-		/// 1ファイル出力
-		/// </summary>
-		/// <param name="centralDirectory">CentoralDirectory</param>
-		/// <param name="outFilePath">出力先ファイルのパス</param>
-		/// <param name="password">パスワード</param>
-		public void PutFile(CentralDirectoryInfo centralDirectory, string outFilePath, string password)
+        /// <summary>
+        /// 1ファイル出力
+        /// </summary>
+        /// <param name="centralDirectory">CentoralDirectory</param>
+        /// <param name="outFilePath">出力先ファイルのパス</param>
+        /// <param name="password">パスワード</param>
+        public void PutFile(CentralDirectoryInfo centralDirectory, string outFilePath, string password)
 		{
-			PutFileAsync(centralDirectory, outFilePath, password, CancellationToken.None).Wait();
+			PutFileAsync(centralDirectory, outFilePath, password, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
@@ -1243,18 +1247,18 @@ namespace YGMailLib.Zip
 		/// <returns></returns>
 		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, string outFilePath, CancellationToken cancelToken)
 		{
-			return PutFileAsync(centralDirectory, outFilePath, defaultPassword, cancelToken);
-		}
+            return PutFileAsync(centralDirectory, new FileInfo(outFilePath), defaultPassword, TaskAbort.Create, cancelToken);
+        }
 
-		/// <summary>
-		/// 1ファイル出力
-		/// </summary>
-		/// <param name="centralDirectory">CentoralDirectory</param>
-		/// <param name="outFilePath">出力先ファイルのパス</param>
-		/// <param name="password">パスワード</param>
-		/// <param name="cancelToken">キャンセルトークン</param>
-		/// <returns></returns>
-		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, string outFilePath, string password, CancellationToken cancelToken)
+        /// <summary>
+        /// 1ファイル出力
+        /// </summary>
+        /// <param name="centralDirectory">CentoralDirectory</param>
+        /// <param name="outFilePath">出力先ファイルのパス</param>
+        /// <param name="password">パスワード</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
+        /// <returns></returns>
+        public Task PutFileAsync(CentralDirectoryInfo centralDirectory, string outFilePath, string password, CancellationToken cancelToken)
 		{
 			return PutFileAsync(centralDirectory, new FileInfo(outFilePath), password, cancelToken);
 		}
@@ -1269,20 +1273,25 @@ namespace YGMailLib.Zip
 		/// <remarks></remarks>
 		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, FileInfo fileInfo, string password, CancellationToken cancelToken)
 		{
-			return PutFileAsync(centralDirectory, fileInfo, password, TaskAbort.Create, cancelToken);
-		}
+            return PutFileAsync(centralDirectory, fileInfo, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), TaskAbort.Create, cancelToken);
+        }
 
-		private Task PutFileAsync(CentralDirectoryInfo centralDirectory, FileInfo fileInfo, string password,TaskAbort abort, CancellationToken cancelToken)
+        private Task PutFileAsync(CentralDirectoryInfo centralDirectory, FileInfo fileInfo, byte[] password,TaskAbort abort, CancellationToken cancelToken)
         {
 			if (centralDirectory.IsEncryption == true && password == null)
 			{
 				throw new ArgumentNullException(nameof(password));
 			}
+			if(centralDirectory.IsDirectory == true)
+			{
+				// ディレクトリは出力しない
+				throw new ArgumentException("Cannot put directory file.", nameof(centralDirectory));
+            }
 
-			return Task.Run(async () =>
+            return Task.Run(async () =>
 			{
 
-				await this.zipSemaphore.WaitAsync(cancelToken);
+				await this.zipSemaphore.WaitAsync(cancelToken).ConfigureAwait(false);
 
 				try
 				{
@@ -1303,11 +1312,11 @@ namespace YGMailLib.Zip
 						// 格納ファイルのデータ部分のみをInputStreamとして抽出
 						using (InputStream compDataStream = new InputStream(zipStream, centralDirectory.CompFileSize))
 						{
-							// 出力ファイル作成
-							using (FileStream outFs = fileInfo.OpenWrite())
-							{
+                            // 出力ファイル作成
+                            using (FileStream outFs = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+                            {
 								// 展開処理
-								await DecryptionStreamAsync(centralDirectory, compDataStream, password, outFs, cancelToken);
+                                await DecryptionStreamAsync(centralDirectory, compDataStream, password, outFs, cancelToken).ConfigureAwait(false);
 							}
 						}
 						// タイムスタンプ設定
@@ -1350,7 +1359,7 @@ namespace YGMailLib.Zip
 		/// <param name="outStream">出力先ストリーム</param>
 		public void PutFile(CentralDirectoryInfo centralDirectory, Stream outStream)
 		{
-			PutFile(centralDirectory, outStream, defaultPassword);
+			PutFileAsync(centralDirectory, outStream, defaultPassword, TaskAbort.Create, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
@@ -1361,7 +1370,7 @@ namespace YGMailLib.Zip
 		/// <param name="password">パスワード</param>
 		public void PutFile(CentralDirectoryInfo centralDirectory, Stream outStream, string password)
 		{
-			PutFileAsync(centralDirectory, outStream, password, CancellationToken.None).Wait();
+			PutFileAsync(centralDirectory, outStream, password, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
@@ -1373,38 +1382,61 @@ namespace YGMailLib.Zip
 		/// <remarks></remarks>
 		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, CancellationToken cancelToken)
 		{
-			return PutFileAsync(centralDirectory, outStream, defaultPassword, cancelToken);
-		}
+            return PutFileAsync(centralDirectory, outStream, defaultPassword, TaskAbort.Create, cancelToken);
+        }
 
-		/// <summary>
-		/// 1ファイル出力(ストリームに出力)
-		/// </summary>
-		/// <param name="centralDirectory">CentralDirectory</param>
-		/// <param name="outStream">出力先ストリーム</param>
-		/// <param name="password">パスワード</param>
-		/// <param name="cancelToken">キャンセルトークン</param>
-		/// <remarks></remarks>
-		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, string password, CancellationToken cancelToken)
+        /// <summary>
+        /// 1ファイル出力(ストリームに出力)
+        /// </summary>
+        /// <param name="centralDirectory">CentralDirectory</param>
+        /// <param name="outStream">出力先ストリーム</param>
+        /// <param name="password">パスワード</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
+        /// <remarks></remarks>
+        public Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, string password, CancellationToken cancelToken)
 		{
-			// パスワードチェック
-			if (centralDirectory.IsEncryption == true && password == null)
+            return PutFileAsync(centralDirectory, outStream, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), TaskAbort.Create, cancelToken);
+        }
+
+        /// <summary>
+        /// 1ファイル出力(ストリームに出力)
+        /// </summary>
+        /// <param name="centralDirectory">CentralDirectory</param>
+        /// <param name="outStream">出力先ストリーム</param>
+        /// <param name="password">パスワード</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
+        /// <remarks></remarks>
+        private Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, byte[] password, TaskAbort abort, CancellationToken cancelToken)
+        {
+            // パスワードチェック
+            if (centralDirectory.IsEncryption == true && password == null)
 			{
 				// 暗号化されているのにパスワードが指定されていない
 				throw new ArgumentNullException(nameof(password));
 			}
+            if (centralDirectory.IsDirectory == true)
+            {
+                // ディレクトリは出力しない
+                throw new ArgumentException("Cannot put directory file.", nameof(centralDirectory));
+            }
 
-			return Task.Run(async () =>
+            return Task.Run(async () =>
 			{
 
-				await this.zipSemaphore.WaitAsync(cancelToken);
+				await this.zipSemaphore.WaitAsync(cancelToken).ConfigureAwait(false);
 
 				try
 				{
 
 					inprocFile.TryAdd(centralDirectory, false);
 
-					// zip書庫のストリーム
-					using (Stream zipStream = this.unzipTempStream.GetZipStream())
+                    // タスクキャンセル判定
+                    cancelToken.ThrowIfCancellationRequested();
+
+                    abort.ThrowIfAbortRequested();
+
+                    // zip書庫のストリーム
+                    using (Stream zipStream = this.unzipTempStream.GetZipStream())
 					{
 						// ローカルヘッダに位置づけ
 						zipStream.Position = centralDirectory.LocalHeaderPos;
@@ -1413,14 +1445,15 @@ namespace YGMailLib.Zip
 						using (InputStream compDataStream = new InputStream(zipStream, centralDirectory.CompFileSize))
 						{
 							// 展開処理
-							await DecryptionStreamAsync(centralDirectory, compDataStream, password, outStream, cancelToken);
+							await DecryptionStreamAsync(centralDirectory, compDataStream, password, outStream, cancelToken).ConfigureAwait(false);
 						}
 					}
 
 				}
 				catch (Exception ex)
 				{
-					string cdInfo = string.Empty;
+                    abort.Abort();
+                    string cdInfo = string.Empty;
 					try
 					{
 						cdInfo = centralDirectory.ToString();
@@ -1444,7 +1477,7 @@ namespace YGMailLib.Zip
 		/// <param name="outputDirectory">出力先ディレクトリ(存在しない場合は作成する)</param>
 		public void ExtractAllFiles(DirectoryInfo outputDirectory)
 		{
-			ExtractAllFiles(outputDirectory, defaultPassword);
+			ExtractAllFilesPrivate(outputDirectory, defaultPassword);
 		}
 
 		/// <summary>
@@ -1454,7 +1487,7 @@ namespace YGMailLib.Zip
 		/// <param name="password">パスワード</param>
 		public void ExtractAllFiles(DirectoryInfo outputDirectory, string password)
 		{
-			ExtractAllFilesAsync(outputDirectory, password, CancellationToken.None).Wait();
+			ExtractAllFilesAsync(outputDirectory, password, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
@@ -1468,14 +1501,36 @@ namespace YGMailLib.Zip
 			return ExtractAllFilesAsync(outputDirectory, defaultPassword, cancelToken);
 		}
 
-		/// <summary>
-		/// 指定したディレクトリに書庫を解凍する
-		/// </summary>
-		/// <param name="outputDirectory">出力先ディレクトリ</param>
-		/// <param name="password">暗号化パスワード</param>
-		/// <param name="cancelToken">キャンセルトークン</param>
-		/// <remarks></remarks>
-		public Task ExtractAllFilesAsync(DirectoryInfo outputDirectory, string password, CancellationToken cancelToken)
+        /// <summary>
+        /// 指定したディレクトリに書庫を解凍する
+        /// </summary>
+        /// <param name="outputDirectory">出力先ディレクトリ</param>
+        /// <param name="password">暗号化パスワード</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
+        /// <remarks></remarks>
+        public Task ExtractAllFilesAsync(DirectoryInfo outputDirectory, string password, CancellationToken cancelToken)
+		{
+            return ExtractAllFilesAsync(outputDirectory, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), cancelToken);
+        }
+
+        /// <summary>
+        /// 指定したディレクトリに書庫を解凍する
+        /// </summary>
+        /// <param name="outputDirectory">出力先ディレクトリ(存在しない場合は作成する)</param>
+        /// <param name="password">パスワード</param>
+        private void ExtractAllFilesPrivate(DirectoryInfo outputDirectory, byte[] password)
+        {
+            ExtractAllFilesAsync(outputDirectory, password, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 指定したディレクトリに書庫を解凍する
+        /// </summary>
+        /// <param name="outputDirectory">出力先ディレクトリ</param>
+        /// <param name="password">暗号化パスワード</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
+        /// <remarks></remarks>
+        private Task ExtractAllFilesAsync(DirectoryInfo outputDirectory, byte[] password, CancellationToken cancelToken)
 		{
 
 			if (outputDirectory.Exists == false)
@@ -1639,7 +1694,7 @@ namespace YGMailLib.Zip
 			}
             string workFile = Path.GetFullPath(Path.Combine(outputDirectory.FullName, ShareMethodClass.ReplaceInvFileChar(centralDirectory.FileName)));
 
-            if (Path.GetDirectoryName(workFile).ToUpper().Equals(outputDirectory.FullName.ToUpper()) == false)
+            if (Path.GetDirectoryName(workFile).Equals(outputDirectory.FullName, StringComparison.OrdinalIgnoreCase) == false)
 			{
 				throw new IOException($"InvalidFileName:OutputFile={workFile},OutputDir={outputDirectory.FullName},{centralDirectory}");
 			}
@@ -1655,7 +1710,11 @@ namespace YGMailLib.Zip
 		/// <param name="outputStream"></param>
 		/// <param name="cancelToken"></param>
 		/// <remarks></remarks>
-		private static async Task DecryptionStreamAsync(CentralDirectoryInfo centralDirectory, InputStream compDataStream, string password, Stream outputStream, CancellationToken cancelToken)
+		private static async Task DecryptionStreamAsync(CentralDirectoryInfo centralDirectory, 
+			                                            InputStream compDataStream, 
+														byte[] password, 
+														Stream outputStream, 
+														CancellationToken cancelToken)
 		{
 			if(centralDirectory.IsEncryption == true)
             {
@@ -1667,9 +1726,9 @@ namespace YGMailLib.Zip
 						ZipHeader.AesExtraDataInfo aesExtraData = centralDirectory.GetAesExtraData() ?? 
 							throw new System.Security.Cryptography.CryptographicException("Bad ZIP file. (Unable to get Aes Extra Data Field)");
 						centralDirectory.CompressionMethodOv = aesExtraData.Comptype;
-						using (ZipAesCryptStream decryptStream = new ZipAesCryptStream(compDataStream, (ZipArcClass.ENCRYPTION_OPTION)aesExtraData.EncStrength, ShareMethodClass.EncodingGetBytes(password, centralDirectory.ZipFileNameEncoding), ZipAesCryptStream.StreamMode.DECRYPT, centralDirectory.CompFileSize)) 
+						using (ZipAesCryptStream decryptStream = new ZipAesCryptStream(compDataStream, (ZipArcClass.ENCRYPTION_OPTION)aesExtraData.EncStrength, password, ZipAesCryptStream.StreamMode.DECRYPT, centralDirectory.CompFileSize)) 
 						{
-							await DecompressStreamAsync(centralDirectory, decryptStream, outputStream, cancelToken);
+							await DecompressStreamAsync(centralDirectory, decryptStream, outputStream, cancelToken).ConfigureAwait(false);
 						}
 						break;
 					default:
@@ -1683,9 +1742,9 @@ namespace YGMailLib.Zip
                         {
 							checkCrc = (UInt32)centralDirectory.Filetime << 16;
 						}
-						using (ZipCryptStream decryptStream = new ZipCryptStream(compDataStream, ShareMethodClass.EncodingGetBytes(password, centralDirectory.ZipFileNameEncoding), checkCrc, ZipCryptStream.StreamMode.DECRYPT))
+						using (ZipCryptStream decryptStream = new ZipCryptStream(compDataStream, password, checkCrc, ZipCryptStream.StreamMode.DECRYPT))
 						{
-							await DecompressStreamAsync(centralDirectory, decryptStream, outputStream, cancelToken);
+							await DecompressStreamAsync(centralDirectory, decryptStream, outputStream, cancelToken).ConfigureAwait(false);
 						}
 						break;
                 }
@@ -1693,7 +1752,7 @@ namespace YGMailLib.Zip
             else
             {
 				// 暗号化無し
-				await DecompressStreamAsync(centralDirectory, compDataStream, outputStream, cancelToken);
+				await DecompressStreamAsync(centralDirectory, compDataStream, outputStream, cancelToken).ConfigureAwait(false);
 			}
 
 
@@ -1713,13 +1772,13 @@ namespace YGMailLib.Zip
             {
 				case (UInt16)0u:
 					// 無圧縮
-					await StreamWriteAsync(centralDirectory, compDataStream, outputStream, cancelToken);
+					await StreamWriteAsync(centralDirectory, compDataStream, outputStream, cancelToken).ConfigureAwait(false);
 					break;
                 case (UInt16)HeaderComptype.DEFLATE:
                     // Deflate
                     using (DeflateStream decompressStream = new DeflateStream(compDataStream, CompressionMode.Decompress))
 					{
-						await StreamWriteAsync(centralDirectory, decompressStream, outputStream, cancelToken);
+						await StreamWriteAsync(centralDirectory, decompressStream, outputStream, cancelToken).ConfigureAwait(false);
 					}
 					break;
 #if DEFLATE64
@@ -1727,7 +1786,7 @@ namespace YGMailLib.Zip
 					// Deflate64
 					using (Deflate64Stream decompressStream = new Deflate64Stream(compDataStream, CompressionMode.Decompress))
 					{
-						await StreamWriteAsync(centralDirectory, decompressStream, outputStream, cancelToken);
+						await StreamWriteAsync(centralDirectory, decompressStream, outputStream, cancelToken).ConfigureAwait(false);
 					}
 					break;
 #endif
@@ -1753,7 +1812,7 @@ namespace YGMailLib.Zip
 			// 出力ストリームに出力する
 			using(CalcCrc32Stream crc32Stream = new CalcCrc32Stream(outputStream, CalcCrc32Stream.StreamMode.WRITE))
             {
-				await readStream.CopyToAsync(crc32Stream, 81920, cancelToken);
+				await readStream.CopyToAsync(crc32Stream, 81920, cancelToken).ConfigureAwait(false);
 				outputCount = crc32Stream.IoCount;
 				crc32 = crc32Stream.Crc32;
 			}
@@ -1835,9 +1894,9 @@ namespace YGMailLib.Zip
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : GetCentralDirectory : CreateMemoryStream Start");
 #endif
 
-				byte[] centralDirestoryBytes= new byte[centralDirectoryLength];
+				//byte[] centralDirestoryBytes= new byte[centralDirectoryLength];
 				zipStream.Position = centralDirectoryStartPos;
-				ShareMethodClass.StreamReadBuffer(zipStream, centralDirestoryBytes);
+                //ShareMethodClass.StreamReadBuffer(zipStream, centralDirestoryBytes);
 
 #if DEBUG
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : GetCentralDirectory : CreateMemoryStream End, elaps={stp.Elapsed.TotalMilliseconds}ms");
@@ -1845,15 +1904,16 @@ namespace YGMailLib.Zip
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : GetCentralDirectory : GetCentralDirectory Start");
 #endif
 
-				// CentralDirectory(PK0102)とLocalHeader(PK0304)取得
+                // CentralDirectory(PK0102)とLocalHeader(PK0304)取得
 
-				using (MemoryStream centralDirectoryStream = new MemoryStream(centralDirestoryBytes, false))
-				{
-					for (long i = 0L; i < centralDirectoryCount; i++)
+                //using (MemoryStream centralDirectoryStream = new MemoryStream(centralDirestoryBytes, false))
+                using (InputStream centralDirectoryStream = new InputStream(zipStream,centralDirectoryLength))
+                {
+                    for (long i = 0L; i < centralDirectoryCount; i++)
 					{
 						long pos = centralDirectoryStartPos + centralDirectoryStream.Position;
 						ZipHeader.PK0102Info pk0102 = new ZipHeader.PK0102Info(centralDirectoryStream);
-						CentralDirectoryInfo centralDirectory = new CentralDirectoryInfo(centralDirectoryStartPos, pk0102, ZipFileNameEncoding, unzipTempStream);
+						CentralDirectoryInfo centralDirectory = new CentralDirectoryInfo(pos, pk0102, ZipFileNameEncoding, unzipTempStream);
 						centralDirectoryList.Add(centralDirectory);
 					}
 				}
@@ -1875,18 +1935,16 @@ namespace YGMailLib.Zip
 		private static long FindEndOfCentralDirectory(Stream zipStream)
 		{
 			int bufSize = (zipStream.Length > PK0506_SEARCH_BUF_SIZE) ? PK0506_SEARCH_BUF_SIZE : (int)zipStream.Length;
-			zipStream.Position = zipStream.Length - bufSize;
+            zipStream.Position = zipStream.Length - bufSize;
 			byte[] buf= new byte[bufSize];
 			zipStream.Read(buf, 0, buf.Length);
             
-			uint signature = 0u;
-
             int startPos = bufSize - (new ZipHeader.PK0506Info().GetBytes().Length - 4) - 1;
-			for(int i = startPos; i > 0; i--)
+			for(int i = startPos; i >= 0; i--)
 			{
-				signature = (signature << 8) | buf[i];
-				if (signature == ZipArcClass.SIG_PK0506) {
-					return i + zipStream.Length - bufSize;
+                if (BitConverter.ToUInt32(buf, i) == ZipArcClass.SIG_PK0506)
+                {
+                    return i + zipStream.Length - bufSize;
                 }
 			}
             throw new InvalidDataException("Bad ZIP file. (end of central directory record not found)");
@@ -1911,8 +1969,12 @@ namespace YGMailLib.Zip
 			// Zip64 end of central directory locatorのシグネチャ取得
 			zipStream.Position = locatorPos;
 			byte[] buffer = new byte[4];
-			zipStream.Read(buffer, 0, buffer.Length);
-			UInt32 locatorSignature = BitConverter.ToUInt32(buffer, 0);
+			int readLength = zipStream.Read(buffer, 0, buffer.Length);
+			if(readLength < 4)
+			{
+				return -1L;
+            }
+            UInt32 locatorSignature = BitConverter.ToUInt32(buffer, 0);
 			if (locatorSignature != ZipArcClass.SIG_PK0607)
 			{
 				return -1L;
@@ -1959,13 +2021,23 @@ namespace YGMailLib.Zip
 
                     unzipTempStream?.Dispose();
                     defaultZipTextEncoding = null;
+					if(defaultPassword != null)
+					{
+                        // パスワードのバイト配列をクリア
+                        if (this.defaultPassword.Length > 0)
+                        {
+                            Array.Clear(this.defaultPassword, 0, this.defaultPassword.Length);
+                        }
+                    }
                     defaultPassword = null;
 
                 }
 
-				// TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
-				// TODO: 大きなフィールドを null に設定します
-				disposedValue = true;
+                // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
+                // TODO: 大きなフィールドを null に設定します
+                centralDirectoryList?.Clear();
+
+                disposedValue = true;
 			}
 		}
 

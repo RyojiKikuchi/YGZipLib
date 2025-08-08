@@ -20,7 +20,11 @@ namespace YGMailLib.Zip.Streams
 
 		public WriteCountStream(Stream writeStream)
 		{
-			this.writeStream = writeStream;
+			if (writeStream == null)
+			{
+				throw new ArgumentNullException(nameof(writeStream));
+            }
+            this.writeStream = writeStream;
 		}
 
 		#endregion
@@ -73,13 +77,15 @@ namespace YGMailLib.Zip.Streams
 			throw new NotSupportedException();
 		}
 
-		public override void Close()
+		protected override void Dispose(bool disposing)
 		{
-			if (writeStream != null)
-			{
-				writeStream = null;
-			}
-			base.Close();
-		}
-	}
+            if (disposing)
+            {
+                // writeStreamのDisposeは呼び出し元で行うため、ここではnullに設定するだけ
+                writeStream = null;
+            }
+            base.Dispose(disposing);
+        }
+
+    }
 }

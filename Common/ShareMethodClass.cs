@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Security.Cryptography;
+
 
 #if YGZIPLIB
 using YGZipLib.Common;
@@ -21,6 +23,8 @@ namespace YGZipLib.Common
 namespace YGMailLib.Zip.Common
 #endif
 {
+
+    /// <summary>共有メソッドクラス</summary>
     internal static class ShareMethodClass
     {
 
@@ -32,7 +36,9 @@ namespace YGMailLib.Zip.Common
 
         #region Member/Variables
 
+        /// <summary>システム規定のANSIコードページ</summary>
         private static readonly int defaultAnsiCodepage;
+        /// <summary>システム規定の置換文字列</summary>
         private static readonly string defaultReplacementString;
 
         /// <summary>ファイル名として使用不可能な文字</summary>
@@ -87,8 +93,10 @@ namespace YGMailLib.Zip.Common
 
         #region コンストラクタ
 
+        /// <summary>静的コンストラクタ</summary>
         static ShareMethodClass()
 		{
+            // 使用不可文字の設定
             Path.GetInvalidPathChars().ToList().ForEach(c => {
                 invPathNameChars.Add(c, true);
             });
@@ -271,22 +279,22 @@ namespace YGMailLib.Zip.Common
             }
 
             int len = byteArray1.Length;
-            fixed (byte* ap = byteArray1, bp = byteArray2)
+            fixed (byte* bypeArrayPointer1 = byteArray1, byteArrayPointer2 = byteArray2)
             {
-                long* alp = (long*)ap;
-                long* blp = (long*)bp;
+                long* longConvPointer1 = (long*)bypeArrayPointer1;
+                long* longConvPointer2 = (long*)byteArrayPointer2;
                 for (; len >= 8; len -= 8)
                 {
-                    if (*(alp++) != *(blp++))
+                    if (*(longConvPointer1++) != *(longConvPointer2++))
                     {
                         return false;
                     }
                 }
-                byte* ap2 = (byte*)alp;
-                byte* bp2 = (byte*)blp;
+                byte* byteConvPointer1 = (byte*)longConvPointer1;
+                byte* byteConvPointer2 = (byte*)longConvPointer2;
                 for (; len > 0; len--)
                 {
-                    if (*(ap2++) != *(bp2++))
+                    if (*(byteConvPointer1++) != *(byteConvPointer2++))
                     {
                         return false;
                     }
@@ -508,20 +516,31 @@ namespace YGMailLib.Zip.Common
 		}
 
         /// <summary>
-        /// byte配列を:区切りの文字列に変換
+        /// byte配列を文字列に変換
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
         internal static string ByteArrayToHex(byte[] bytes)
         {
+            return ByteArrayToHex(bytes, false);
+        }
+
+        /// <summary>
+        /// byte配列を文字列に変換
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <param name="separator">区切り文字を入れるか</param>
+        /// <returns></returns>
+        internal static string ByteArrayToHex(byte[] bytes, bool separator)
+        {
             StringBuilder sb = new StringBuilder();
             foreach (byte b in bytes)
             {
-                if (sb.Length > 0)
+                if (separator && sb.Length > 0)
                 {
                     sb.Append(':');
                 }
-                sb.Append($"{b:X2}");
+                sb.Append(b.ToString("X2"));
             }
             return sb.ToString();
         }
@@ -621,13 +640,14 @@ namespace YGMailLib.Zip.Common
         internal static string CheckDirectories(UnZipArcClass unzip, List<UnZipArcClass.CentralDirectoryInfo> cds)
 		{
             StringBuilder sb = new StringBuilder();
-            using (SemaphoreSlim sem = new SemaphoreSlim(8))
-            {
+            //using (SemaphoreSlim sem = new SemaphoreSlim(8))
+            //{
                 Parallel.ForEach(cds, cd => {
+
                     StringBuilder res = new StringBuilder();
                     try
                     {
-                        sem.Wait();
+                        //sem.Wait();
                         string cdErrors = CheckDirectory(unzip, cd);
                         if (string.IsNullOrWhiteSpace(cdErrors))
                         {
@@ -644,14 +664,14 @@ namespace YGMailLib.Zip.Common
                     }
                     finally
                     {
-                        sem.Release();
+                        //sem.Release();
                     }
                     lock (sb)
                     {
                         sb.AppendLine($"{res}");
                     }
                 });
-            }
+            //}
 
             return sb.ToString();
         }
@@ -677,25 +697,28 @@ namespace YGMailLib.Zip.Common
                 errors.Add($"Incorrect LocalHeader({localHeaderErrors})");
             }
 
-            using(Stream st = Stream.Null)
-            using (CalcCrc32Stream crc32 = new CalcCrc32Stream(st, CalcCrc32Stream.StreamMode.WRITE))
+            if (cd.IsDirectory == false)
             {
-                unzip.PutFile(cd, crc32);
-                if (cd.ExtraFields.ContainsKey(ZipHeader.ExtraDataId.AesExtraData))
+                using (Stream st = Stream.Null)
+                using (CalcCrc32Stream crc32 = new CalcCrc32Stream(st, CalcCrc32Stream.StreamMode.WRITE))
                 {
-                    if (cd.GetAesExtraData().VersionNumber == 1)
+                    unzip.PutFile(cd, crc32);
+                    if (cd.ExtraFields.ContainsKey(ZipHeader.ExtraDataId.AesExtraData))
+                    {
+                        if (cd.GetAesExtraData().VersionNumber == 1)
+                        {
+                            if (crc32.Crc32 != cd.Pk0102.Crc32)
+                            {
+                                errors.Add($"Error Crc32(Unzipfile:{crc32.Crc32}\r\nPK0102:{cd.Pk0102.Crc32})");
+                            }
+                        }
+                    }
+                    else
                     {
                         if (crc32.Crc32 != cd.Pk0102.Crc32)
                         {
                             errors.Add($"Error Crc32(Unzipfile:{crc32.Crc32}\r\nPK0102:{cd.Pk0102.Crc32})");
                         }
-                    }
-                }
-                else
-                {
-                    if (crc32.Crc32 != cd.Pk0102.Crc32)
-                    {
-                        errors.Add($"Error Crc32(Unzipfile:{crc32.Crc32}\r\nPK0102:{cd.Pk0102.Crc32})");
                     }
                 }
             }
@@ -793,6 +816,32 @@ namespace YGMailLib.Zip.Common
 #endif
 
         #endregion
+
+        #region 一時ファイル
+
+        private const string TEMP_FILE_PREFIX = "zltmp";
+        private static long tempFileCounter = 0;
+
+        /// <summary>テンポラリファイル名取得</summary>
+        internal static string GetTempFileName(string tempPath)
+        {
+            tempPath = Path.GetFullPath(tempPath ?? Path.GetTempPath());
+            if (Directory.Exists(tempPath) == false)
+            {
+                throw new DirectoryNotFoundException($"Temporary directory does not exist. {tempPath}");
+            }
+            RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            byte[] randomBytes = new byte[16];
+            rng.GetBytes(randomBytes);
+
+            string tempFileName = Path.Combine(tempPath, $"{TEMP_FILE_PREFIX}_{Guid.NewGuid():N}_{ByteArrayToHex(randomBytes)}_{Interlocked.Increment(ref tempFileCounter)}.tmp");
+#if DEBUG
+            Debug.WriteLine($"ShareMethodClass.GetTempFile : tempFileName={tempFileName}");
+#endif
+            return Path.GetFullPath(tempFileName);
+        }
+
+#endregion
 
     }
 }

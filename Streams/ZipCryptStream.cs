@@ -81,7 +81,11 @@ namespace YGMailLib.Zip.Streams
 			}
 			else
 			{
-				this.readStream = (InputStream)baseStream;
+                if (!(baseStream is InputStream))
+                {
+                    throw new ArgumentException("baseStream must be InputStream for DECRYPT mode.");
+                }
+                this.readStream = (InputStream)baseStream;
 				InitZipDecrypt(password, crc32);
 			}
 		}
@@ -162,7 +166,7 @@ namespace YGMailLib.Zip.Streams
 			}
 			if (checkCrc != (byte)((crc32 >> 24) & 0xFFu))
 			{
-				throw new CryptographicException("Password invalid");
+				throw new CryptographicException("The password is incorrect.");
 			}
 		}
 
@@ -269,7 +273,7 @@ namespace YGMailLib.Zip.Streams
 					{
                         byte* bp = &b[offset];
                         uint* k0 = &k[0]; uint* k1 = &k[1]; uint* k2 = &k[2];
-                        for (int i = offset; i < (count - offset); i++)
+                        for (int i = 0; i < count; i++)
                         {
                             // 暗号化(処理速度改善のためZEncodeとUpdateKeysを展開)
                             temp = (*k2 & 0xFFFFu) | 2u;
@@ -304,7 +308,7 @@ namespace YGMailLib.Zip.Streams
 					{
                         byte* bp = &b[offset];
                         uint* k0 = &k[0]; uint* k1 = &k[1]; uint* k2 = &k[2];
-                        for (int i = offset; i < (offset + readCount); i++)
+                        for (int i = 0; i < readCount; i++)
                         {
                             // 復号化(処理速度改善のためZDecodeとUpdateKeysを展開)
                             temp = (*k2 & 0xFFFFu) | 2u;

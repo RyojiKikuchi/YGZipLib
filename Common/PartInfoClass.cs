@@ -8,14 +8,18 @@ namespace YGZipLib.Common
 namespace YGMailLib.Zip.Common
 #endif
 {
+
+    /// <summary>PartInfoClass</summary>
     internal class PartInfoClass
 	{
 
-        /// <summary>ID</summary>
-        public long Id { get; set; } = 0;
+		private int _Id = 0;
 
-		/// <summary>ファイル名</summary>
-		public byte[] FileName { get; set; } = null;
+        /// <summary>ID</summary>
+        public int Id { get { return _Id; } set { _Id = value - 1; } }
+
+        /// <summary>ファイル名</summary>
+        public byte[] FileName { get; set; } = null;
 
 		/// <summary>格納ファイルの作成タイムスタンプ</summary>
 		public DateTime FileCreateTimeStamp { get; set; } = DateTime.MinValue;

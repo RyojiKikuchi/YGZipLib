@@ -44,7 +44,7 @@ namespace YGMailLib.Zip.Streams
         {
             /// <summary>暗号化</summary>
             ENCRYPT,
-            /// <summary>複合化</summary>
+            /// <summary>復号化</summary>
             DECRYPT
         }
 
@@ -75,7 +75,7 @@ namespace YGMailLib.Zip.Streams
         private long totalReadCount = 0;
 
         /// <summary>HMAC計算用</summary>
-        private HMAC calcHmac = null;
+        private HMACSHA1 calcHmac = null;
 
         /// <summary>Streamモード</summary>
         private readonly StreamMode streamMode;
@@ -152,56 +152,75 @@ namespace YGMailLib.Zip.Streams
 
             // マスク配列作成スレッド取得
             aesMaskTask = AesMaskThreadPool.GetThread();
-            maskPosition = MASK_SIZE;
 
-            // ストリームモード設定
-            this.streamMode = streamMode;
-
-            // Saltサイズ取得
-            byte[] aesSalt = new byte[AES_SALT_LENGTH[(int)aesMode]];
-
-            // ストリームモード別処理
-            if (this.streamMode == StreamMode.ENCRYPT)
+            try
             {
-                // 書込ストリーム設定
-                writeStream = baseStream;
+                maskPosition = MASK_SIZE;
+                // ストリームモード設定
+                this.streamMode = streamMode;
 
-                // SALT設定
-                using (RandomNumberGenerator randomGen = RandomNumberGenerator.Create())
+                // Saltサイズ取得
+                switch (aesMode)
                 {
-                    randomGen.GetBytes(aesSalt);
+                    case ZipArcClass.ENCRYPTION_OPTION.AES128:
+                    case ZipArcClass.ENCRYPTION_OPTION.AES192:
+                    case ZipArcClass.ENCRYPTION_OPTION.AES256:
+                        break;
+                    default:
+                        throw new CryptographicException(nameof(aesMode), "Invalid AES mode specified.");
+                }
+                byte[] aesSalt = new byte[AES_SALT_LENGTH[(int)aesMode]];
+
+                // ストリームモード別処理
+                if (this.streamMode == StreamMode.ENCRYPT)
+                {
+                    // 書込ストリーム設定
+                    writeStream = baseStream;
+
+                    // SALT設定
+                    using (RandomNumberGenerator randomGen = RandomNumberGenerator.Create())
+                    {
+                        randomGen.GetBytes(aesSalt);
+                    }
+
+                    // キー初期化
+                    InitKey(aesMode, password, aesSalt);
+                }
+                else
+                {
+                    // 読込ストリーム設定
+                    InputStream baseInputStream = (InputStream)baseStream;
+
+                    // SALT取得
+                    baseInputStream.ReadBuffer(aesSalt);
+
+                    // パスワード検証値取得
+                    byte[] passwordValidationDataIn = new byte[2];
+                    baseInputStream.ReadBuffer(passwordValidationDataIn);
+
+                    // キー初期化
+                    byte[] passwordValidationDataInit = InitKey(aesMode, password, aesSalt);
+
+                    // パスワード検証値チェック
+                    if (!ShareMethodClass.ByteArrayCompare(passwordValidationDataIn, passwordValidationDataInit))
+                    {
+                        throw new CryptographicException("AES Password invalid");
+                    }
+
+                    // ストリーム設定
+                    readStream = new InputStream(baseInputStream, baseInputStream.Length - baseInputStream.Position - 10);
                 }
 
-                // キー初期化
-                InitKey(aesMode, password, aesSalt);
+                //// マスク配列作成処理初回起動
+                //aesMaskTask.Start();
+
             }
-            else
+            catch (Exception)
             {
-                // 読込ストリーム設定
-                InputStream baseInputStream = (InputStream)baseStream;
-
-                // SALT取得
-                baseInputStream.ReadBuffer(aesSalt);
-
-                // パスワード検証値取得
-                byte[] passwordValidationDataIn = new byte[2];
-                baseInputStream.ReadBuffer(passwordValidationDataIn);
-
-                // キー初期化
-                byte[] passwordValidationDataInit = InitKey(aesMode, password, aesSalt);
-
-                // パスワード検証値チェック
-                if (!ShareMethodClass.ByteArrayCompare(passwordValidationDataIn, passwordValidationDataInit))
-                {
-                    throw new CryptographicException("AES Password invalid");
-                }
-
-                // ストリーム設定
-                readStream = new InputStream(baseInputStream, baseInputStream.Length - baseInputStream.Position - 10);
+                aesMaskTask?.Dispose();
+                aesMaskTask = null;
+                throw;
             }
-
-            //// マスク配列作成処理初回起動
-            //aesMaskTask.Start();
 
 #if DEBUG
             constructorExecTime = stp.Elapsed.TotalMilliseconds;
@@ -358,7 +377,7 @@ namespace YGMailLib.Zip.Streams
                 lock (threadListLocker)
                 {
                     // 未使用スレッドのリストアップ
-                    threadList.ForEach(thread    =>
+                    threadList.ForEach(thread =>
                     {
 #if DEBUG
                         bool isCollection = false;
@@ -791,7 +810,7 @@ namespace YGMailLib.Zip.Streams
 #if NET472_OR_GREATER || NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             using (Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, aesSalt, 1000, HashAlgorithmName.SHA1))
 #else
-        using (Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, aesSalt, 1000))
+            using (Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, aesSalt, 1000))
 #endif
             {
                 pbkdf2Output = pbkdf2.GetBytes((AES_KEY_LENGTH[(int)aesMode] * 2) + 2);
@@ -850,7 +869,7 @@ namespace YGMailLib.Zip.Streams
         }
 
         /// <summary>
-        /// 入出力バッファとマスク配列をxorして暗号化／複合化を行う
+        /// 入出力バッファとマスク配列をxorして暗号化／復号化を行う
         /// </summary>
         /// <param name="array">入出力バッファ</param>
         /// <param name="offset">オフセット</param>
@@ -978,7 +997,7 @@ namespace YGMailLib.Zip.Streams
             }
             catch { throw; }
 #if DEBUG
-            Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(CheckHash): Length={totalReadCount}, varidationValue={ShareMethodClass.ByteArrayToHex(varidationData)}, hash={ShareMethodClass.ByteArrayToHex(hash)}");
+            Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(CheckHash): Length={totalReadCount}, varidationValue={ShareMethodClass.ByteArrayToHex(varidationData, true)}, hash={ShareMethodClass.ByteArrayToHex(hash, true)}");
 #endif
             if (!ShareMethodClass.ByteArrayCompare(varidationData, hash))
             {

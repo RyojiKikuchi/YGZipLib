@@ -4,14 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
+
 
 #if YGZIPLIB
+using YGZipLib.Common;
 
 namespace YGZipLib.Streams
 {
 
     /// <summary>
-    /// UnZipをマルチスレッドで実行するためのストリーム
+    /// UnZipをマルチスレッドで実行するためのストリーム管理クラス
     /// </summary>
     internal class UnzipTemp : IDisposable
 	{
@@ -26,7 +29,7 @@ namespace YGZipLib.Streams
 
 		private readonly ConcurrentDictionary<string, Stream> streamDic;
 		private readonly object lockObject = new object();
-		private readonly FileStream tempFileStream;
+		//private readonly FileStream tempFileStream;
 		private readonly byte[] zipBytes;
 		private readonly string zipFileName;
 		private readonly TEMP_MODE mode;
@@ -40,13 +43,13 @@ namespace YGZipLib.Streams
 			public bool InUse { get; set; } = true;
 			public string Id { get; } = Guid.NewGuid().ToString("N");
             public TempFileStream(string zipFileName) : base(zipFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 8192, FileOptions.RandomAccess | FileOptions.Asynchronous) { }
-            public override void Close()
-            {
-#if DEBUG
-                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : TempFileStream Close: Id={Id}");
-#endif
-                base.Close();
-            }
+//            public override void Close()
+//            {
+//#if DEBUG
+//                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : TempFileStream Close: Id={Id}");
+//#endif
+//                base.Close();
+//            }
         }
 
         private class TempMemoryStream : MemoryStream
@@ -54,13 +57,13 @@ namespace YGZipLib.Streams
             public bool InUse { get; set; } = true;
 			public string Id { get; }= Guid.NewGuid().ToString("N");
             public TempMemoryStream(byte[] zipData) : base(zipData, false) { }
-            public override void Close()
-            {
-#if DEBUG
-                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : TempMemoryStream Close: Id={Id}");
-#endif
-                base.Close();
-            }
+//            public override void Close()
+//            {
+//#if DEBUG
+//                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : TempMemoryStream Close: Id={Id}");
+//#endif
+//                base.Close();
+//            }
         }
 
         private class TempStream : Stream
@@ -70,7 +73,10 @@ namespace YGZipLib.Streams
             private readonly CloseStreamDelegate CloseStream;
 
             private readonly TEMP_MODE tempMode;
-            
+
+            /// <summary>CloseStream の二重実行防止</summary>
+            private int closed = 0;
+
             public string Id { get
 				{
                     switch (tempMode)
@@ -171,7 +177,10 @@ namespace YGZipLib.Streams
 
             public override void Close()
             {
-				CloseStream(this);
+                if (Interlocked.Exchange(ref closed, 1) == 0)
+                {
+                    CloseStream(this);
+                }
                 base.Close();
             }
 
@@ -179,10 +188,17 @@ namespace YGZipLib.Streams
 
             protected override void Dispose(bool disposing)
             {
-                base.Dispose(disposing);
                 if (disposedValue == false)
                 {
-					disposedValue = true;
+                    if (disposing)
+                    {
+                        if (Interlocked.Exchange(ref closed, 1) == 0)
+                        {
+                            CloseStream(this);
+                        }
+                    }
+                    base.Dispose(disposing);
+                    disposedValue = true;
                 }
             }
 
@@ -203,10 +219,12 @@ namespace YGZipLib.Streams
 		{
 			streamDic = new ConcurrentDictionary<string, Stream>();
 			mode = TEMP_MODE.STREAM;
-            zipFileName = Path.Combine(tempDir ?? Path.GetTempPath(), $"zltmp_{Guid.NewGuid():N}_{Guid.NewGuid():N}.tmp");
-            tempFileStream = new FileStream(zipFileName, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite, 8192, FileOptions.DeleteOnClose | FileOptions.SequentialScan);
-			zipStream.CopyTo(tempFileStream);
-			tempFileStream.Flush();
+            zipFileName = ShareMethodClass.GetTempFileName(tempDir);
+            using (FileStream fs = new FileStream(zipFileName, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite, 819200, FileOptions.SequentialScan))
+            {
+                zipStream.CopyTo(fs);
+                fs.Flush();
+            }
 		}
 
 		public UnzipTemp(byte[] zipBytes)
@@ -225,18 +243,24 @@ namespace YGZipLib.Streams
 			Stream zst = null;
 			lock (lockObject)
 			{
-                zst = streamDic.Values.ToList().Find(st => {
+                foreach (Stream st in streamDic.Values)
+                {
                     if (st is TempFileStream fs)
                     {
-                        if (fs.InUse == false) { return true; }
+                        if (fs.InUse == false) { 
+                            zst = st;
+                            break;
+                        }
                     }
                     else
                     {
                         TempMemoryStream ms = (TempMemoryStream)st;
-                        if (ms.InUse == false) { return true; }
+                        if (ms.InUse == false) { 
+                            zst = st;
+                            break;
+                        }
                     }
-                    return false;
-                });
+                }
 
                 TempStream ts = null;
                 if (zst == null)
@@ -257,7 +281,13 @@ namespace YGZipLib.Streams
                 {
                     ts = new TempStream(this.mode, zst, CloseTempStream);
                 }
+
+                // ストリームを使用中に設定
                 ts.InUse = true;
+
+                // Positionは必ず設定されるので、0に設定しない。
+                // ts.Position = 0;
+
 #if DEBUG
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : GetZipStream: Id={ts.Id} streamDic.Count={streamDic.Count}");
 #endif
@@ -278,9 +308,10 @@ namespace YGZipLib.Streams
         {
             foreach (var ts in streamDic)
             {
-				ts.Value.Dispose();
+                // ストリームを閉じる
+                try { ts.Value.Dispose(); } catch { }
             }
-			streamDic.Clear();
+            streamDic.Clear();
         }
 
         #endregion
@@ -295,20 +326,31 @@ namespace YGZipLib.Streams
             {
                 if (disposing)
                 {
-					// TODO: マネージド状態を破棄します (マネージド オブジェクト)
+                    // TODO: マネージド状態を破棄します (マネージド オブジェクト)
 
-					DisposeAllStream();
+                    DisposeAllStream();
 
-                    if(mode== TEMP_MODE.STREAM)
+                    if (mode == TEMP_MODE.STREAM)
                     {
-                        tempFileStream?.Dispose();
+                        if (File.Exists(this.zipFileName))
+                        {
+#if DEBUG
+                            try { File.Delete(this.zipFileName); }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"Failed to delete temporary file: {this.zipFileName}, Exception: {ex.Message}");
+                            }
+#else
+                            try { File.Delete(this.zipFileName); } catch { }
+#endif
+                        }
                     }
-
                 }
 
                 // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
                 // TODO: 大きなフィールドを null に設定します
                 disposedValue = true;
+
             }
         }
 

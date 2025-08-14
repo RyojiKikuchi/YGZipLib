@@ -1360,11 +1360,12 @@ if (filenameEncoding == null)
 #if DEBUG
             Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : AddZipDirectoryRecuriveAsync start.");
 #endif
-            Task t = Task.Run(() =>
-            {
-                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
 
-                Task.WaitAll(taskList.ToArray(), cancelToken);
+            Task t = Task.Run(async () =>
+            {
+
+                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
+                await Task.WhenAll(taskList.ToArray()).ConfigureAwait(false);
 
             }, cancelToken);
 #if DEBUG

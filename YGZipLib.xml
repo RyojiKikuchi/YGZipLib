@@ -495,12 +495,6 @@
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskThread">
             <summary>マスク作成タスク</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.avx2Supported">
-            <summary>AVX2サポート判定</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.advSimdSupported">
-            <summary>AdvSimdサポート判定</summary>
-        </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.#ctor(System.IO.Stream,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],YGZipLib.Streams.ZipAesCryptStream.StreamMode,System.Int64)">
             <summary>
             コンストラクタ
@@ -2041,23 +2035,23 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecursiveAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Threading.CancellationToken)">
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecursiveAsync(System.String,System.IO.DirectoryInfo,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Threading.CancellationToken)">
             <summary>
             ディレクトリを再帰的に書庫に追加する
             </summary>
             <param name="baseDir">書庫に格納する親ディレクトリ</param>
-            <param name="dirPath">格納するファイルorディレクトリ</param>
+            <param name="di">格納するファイルorディレクトリ</param>
             <param name="excludeDirectoryNameList">格納対象外とするディレクトリの正規表現リスト(一致するディレクトリ以下が格納対象外となる))</param>
             <param name="excludeFileNameList">格納対象外とするファイルの正規表現リスト</param>
             <param name="cancelToken"></param>
             <remarks></remarks>
         </member>
-        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecursiveMainAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecursiveMainAsync(System.String,System.IO.DirectoryInfo,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
             <summary>
             ディレクトリを再帰的に書庫に追加する
             </summary>
             <param name="baseDir"></param>
-            <param name="dirPath"></param>
+            <param name="di"></param>
             <param name="excludeFileNameList"></param>
             <param name="excludeDirectoryNameList"></param>
             <param name="abort"></param>
@@ -2093,7 +2087,7 @@
             <summary>
             書庫にファイルの追加を行う(FileInfo)
             </summary>
-            <param name="fileName">ファイル名</param>
+            <param name="storeFileName">ファイル名</param>
             <param name="fi">追加するファイルの情報</param>
             <param name="compressionOption"></param>
             <param name="encryptionOption"></param>

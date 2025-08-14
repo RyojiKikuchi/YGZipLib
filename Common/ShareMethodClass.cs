@@ -120,7 +120,7 @@ namespace YGMailLib.Zip.Common
             Encoding enc;
             try
             {
-                enc = Encoding.GetEncoding(defaultAnsiCodepage, new EncoderExceptionFallback(), new DecoderExceptionFallback());
+                enc = Encoding.GetEncoding(defaultAnsiCodepage);
             }
 #if DEBUG
 			catch (NotSupportedException ex)
@@ -131,7 +131,7 @@ namespace YGMailLib.Zip.Common
 			{ 
 #endif
                 defaultAnsiCodepage = 65001;
-                enc = Encoding.GetEncoding(defaultAnsiCodepage, new EncoderExceptionFallback(), new DecoderExceptionFallback());
+                enc = Encoding.GetEncoding(defaultAnsiCodepage);
             }
             catch (Exception)
             {
@@ -141,12 +141,19 @@ namespace YGMailLib.Zip.Common
             // ReplacementString取得
             try
             {
-                enc.GetBytes("〓");
-				defaultReplacementString = "〓";
+                if (string.Compare(enc.GetString(enc.GetBytes("〓")), "〓", StringComparison.Ordinal) == 0)
+                {
+                    defaultReplacementString = "〓";
+                }
+                else
+                {
+                    defaultReplacementString = "-";
+                }
             }
             catch { defaultReplacementString = "-"; }
+
 #if DEBUG
-			Debug.WriteLine($"ShareMethodClass static constructor : Codepage={defaultAnsiCodepage}, ReplacementString={defaultReplacementString}");
+            Debug.WriteLine($"ShareMethodClass static constructor : Encoding={enc.EncodingName}, Codepage={defaultAnsiCodepage}, ReplacementString={defaultReplacementString}");
 #endif
 			ansiEncoding = Encoding.GetEncoding(defaultAnsiCodepage, new EncoderReplacementFallback(defaultReplacementString), new DecoderReplacementFallback(defaultReplacementString));
         }

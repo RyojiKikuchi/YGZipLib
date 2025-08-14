@@ -52,12 +52,15 @@ namespace YGMailLib.Zip
 			AES_ENCRYPTION = 0x0063
 		}
 
-		#endregion
+        private const int READ_BUFFER_SIZE = 8192;
+        private const int WRITE_BUFFER_SIZE = 32768;
 
-		#region "メンバ変数"
+        #endregion
 
-		/// <summary>書庫内ファイルリスト</summary>
-		private readonly List<CentralDirectoryInfo> centralDirectoryList = new List<CentralDirectoryInfo>();
+        #region "メンバ変数"
+
+        /// <summary>書庫内ファイルリスト</summary>
+        private readonly List<CentralDirectoryInfo> centralDirectoryList = new List<CentralDirectoryInfo>();
 		/// <summary>書庫およびパスワードのエンコーディング</summary>
 		private Encoding defaultZipFileNameEncoding = ShareMethodClass.AnsiEncoding;
 		/// <summary>パスワード付きファイルの復号に使用するパスワード</summary>
@@ -764,8 +767,16 @@ namespace YGMailLib.Zip
 			{
 				StringBuilder cdInfo = new StringBuilder();
 				cdInfo.AppendLine($"CentralDirectoryInfo");
-				cdInfo.AppendLine($" FullName:{ShareMethodClass.EncodingGetString(centralDirectory.filenameb, ZipFileNameEncoding)}");
-				cdInfo.AppendLine($" DirectoryName:{DirectoryName}");
+				if(ExtraFields.TryGetValue(ZipHeader.ExtraDataId.UnicodePath, out byte[] value))
+				{
+                    cdInfo.AppendLine($" FullName:{ShareMethodClass.EncodingGetString(centralDirectory.filenameb, ZipFileNameEncoding)}");
+                    cdInfo.AppendLine($" FullName(Utf8):{FullName}");
+				}
+				else
+				{
+                    cdInfo.AppendLine($" FullName:{FullName}");
+                }
+                cdInfo.AppendLine($" DirectoryName:{DirectoryName}");
 				cdInfo.AppendLine($" FileName:{FileName}");
                 if (centralDirectory.Uncompsize == uint.MaxValue || centralDirectory.Compsize == uint.MaxValue)
                 {
@@ -1295,11 +1306,15 @@ namespace YGMailLib.Zip
 
         private Task PutFileAsync(CentralDirectoryInfo centralDirectory, FileInfo fileInfo, byte[] password,TaskAbort abort, CancellationToken cancelToken)
         {
-			if (centralDirectory.IsEncryption == true && password == null)
+			if (centralDirectory.IsEncryption == true)
 			{
-				throw new ArgumentNullException(nameof(password));
-			}
-			if(centralDirectory.IsDirectory == true)
+#if NET6_0_OR_GREATER
+				ArgumentNullException.ThrowIfNull(password, nameof(password));
+#else
+				if (password == null) throw new ArgumentNullException(nameof(password));
+#endif
+            }
+            if (centralDirectory.IsDirectory == true)
 			{
 				// ディレクトリは出力しない
 				throw new ArgumentException("Cannot put directory file.", nameof(centralDirectory));
@@ -1330,7 +1345,7 @@ namespace YGMailLib.Zip
 						using (InputStream compDataStream = new InputStream(zipStream, centralDirectory.CompFileSize))
 						{
                             // 出力ファイル作成
-                            using (FileStream outFs = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+                            using (FileStream outFs = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, WRITE_BUFFER_SIZE, FileOptions.SequentialScan | FileOptions.Asynchronous))
                             {
 								// 展開処理
                                 await DecryptionStreamAsync(centralDirectory, compDataStream, password, outFs, cancelToken).ConfigureAwait(false);
@@ -1427,11 +1442,16 @@ namespace YGMailLib.Zip
         private Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, byte[] password, TaskAbort abort, CancellationToken cancelToken)
         {
             // パスワードチェック
-            if (centralDirectory.IsEncryption == true && password == null)
+            if (centralDirectory.IsEncryption == true)
 			{
-				// 暗号化されているのにパスワードが指定されていない
-				throw new ArgumentNullException(nameof(password));
-			}
+                // 暗号化されているのにパスワードが指定されていない
+#if NET6_0_OR_GREATER
+				ArgumentNullException.ThrowIfNull(password, nameof(password));
+#else
+                if (password == null) throw new ArgumentNullException(nameof(password));
+#endif
+
+            }
             if (centralDirectory.IsDirectory == true)
             {
                 // ディレクトリは出力しない
@@ -1601,9 +1621,9 @@ namespace YGMailLib.Zip
 
 		}
 
-        #endregion
+#endregion
 
-        #region その他
+		#region その他
 
 #if DEBUG && YGZIPLIB
 
@@ -1619,11 +1639,11 @@ namespace YGMailLib.Zip
 
 #endif
 
-        #endregion
+		#endregion
 
-        #endregion
+#endregion
 
-        #region "ToString"
+		#region "ToString"
 
         /// <summary>
         /// ToString
@@ -1689,8 +1709,12 @@ namespace YGMailLib.Zip
         private static string CheckDirectory(DirectoryInfo outputDirectory, CentralDirectoryInfo centralDirectory)
 		{
             // 出力先ディレクトリチェック
+#if NET6_0_OR_GREATER
+			ArgumentNullException.ThrowIfNull(outputDirectory);
+#else
             if (outputDirectory == null) throw new ArgumentNullException(nameof(outputDirectory));
-			if (outputDirectory.Exists == false)
+#endif
+            if (outputDirectory.Exists == false)
 			{
 				throw new DirectoryNotFoundException($"Output directory does not exist: {outputDirectory.FullName}");
             }

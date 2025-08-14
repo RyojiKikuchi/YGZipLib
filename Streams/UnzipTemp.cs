@@ -27,7 +27,9 @@ namespace YGZipLib.Streams
 			BYTES
 		}
 
-		private readonly ConcurrentDictionary<string, Stream> streamDic;
+        private const int READ_BUFFER_SIZE = 8192;
+
+        private readonly ConcurrentDictionary<string, Stream> streamDic;
 		private readonly object lockObject = new object();
 		//private readonly FileStream tempFileStream;
 		private readonly byte[] zipBytes;
@@ -42,7 +44,7 @@ namespace YGZipLib.Streams
 		{
 			public bool InUse { get; set; } = true;
 			public string Id { get; } = Guid.NewGuid().ToString("N");
-            public TempFileStream(string zipFileName) : base(zipFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 8192, FileOptions.RandomAccess | FileOptions.Asynchronous) { }
+            public TempFileStream(string zipFileName) : base(zipFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, READ_BUFFER_SIZE, FileOptions.RandomAccess | FileOptions.Asynchronous) { }
 //            public override void Close()
 //            {
 //#if DEBUG

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -141,6 +142,9 @@ namespace YGMailLib.Zip
         ///// コア数が多くてもデフォルトでは4多重までにしておく
         ///// </summary>
         //private const int MAX_SEMAPHORE_COUNT = 4;
+
+        private const int READ_BUFFER_SIZE = 8192;
+        private const int WRITE_BUFFER_SIZE = 32768;
 
         #endregion
 
@@ -397,28 +401,15 @@ if (filenameEncoding == null)
         /// ZIP書庫出力ストリーム
         /// </param>
         /// <remarks></remarks>
-        public ZipArcClass(Stream writeStream)
-        {
-            semaphoreCount = GetSemaphoreCount();
-            addZipSemaphore = new SemaphoreSlim(semaphoreCount);
-            isStreamDispose = false;
-            Init(writeStream, Path.GetTempPath());
-        }
+        public ZipArcClass(Stream writeStream): this(writeStream, 0, Path.GetTempPath()) { }
 
         /// <summary>
         /// コンストラクタ 
         /// </summary>
         /// <param name="zipFileName">出力するZIPファイル名(既存ファイルは上書きされます)</param>
         /// <remarks></remarks>
-        public ZipArcClass(string zipFileName)
-        {
-            semaphoreCount = GetSemaphoreCount();
-            addZipSemaphore = new SemaphoreSlim(semaphoreCount);
-            isStreamDispose = true;
-            baseFileStream = new FileStream(zipFileName, FileMode.Create, FileAccess.Write, FileShare.None, 8192, FileOptions.Asynchronous | FileOptions.WriteThrough);
-            Init(baseFileStream, Path.GetTempPath());
-        }
-
+        public ZipArcClass(string zipFileName) : this(zipFileName, 0, Path.GetTempPath()) { }
+        
         /// <summary>
         /// コンストラクタ (多重度、TemporaryDirectory指定)
         /// </summary>
@@ -431,7 +422,7 @@ if (filenameEncoding == null)
             this.semaphoreCount = (semaphoreCount <= 0) ? GetSemaphoreCount() : semaphoreCount;
             addZipSemaphore = new SemaphoreSlim(this.semaphoreCount);
             isStreamDispose = true;
-            baseFileStream = new FileStream(zipFileName, FileMode.Create, FileAccess.Write, FileShare.None, 32768);
+            baseFileStream = new FileStream(zipFileName, FileMode.Create, FileAccess.Write, FileShare.None, WRITE_BUFFER_SIZE, FileOptions.SequentialScan | FileOptions.Asynchronous);
             Init(baseFileStream, string.IsNullOrWhiteSpace(tempDirPath) ? Path.GetTempPath() : tempDirPath);
         }
 
@@ -618,10 +609,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddDirectory(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList)
         {
-            Task.Run(async () =>
-            {
-                await AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList).ConfigureAwait(false);
-            }).GetAwaiter().GetResult();
+            AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -652,22 +640,22 @@ if (filenameEncoding == null)
             if (di.Exists == true)
             {
                 // ディレクトリ内に格納するファイルがある場合は、ディレクトリを作成して格納する
-                if (string.IsNullOrEmpty(baseDir))
+                if (string.IsNullOrWhiteSpace(baseDir))
                 {
                     // ディレクトリを作成しないで格納
-                    await AddZipDirectoryRecursiveAsync(string.Empty, di.FullName, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
+                    await AddZipDirectoryRecursiveAsync(string.Empty, di, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
                 }
                 else
                 {
                     // ディレクトリを作成して格納
                     string zipBaseDir = dirReplaceRegex.Replace(baseDir, "");
-                    await AddZipDirectoryRecursiveAsync($"{zipBaseDir}/", di.FullName, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
+                    await AddZipDirectoryRecursiveAsync($"{zipBaseDir}/", di, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
                 }
             }
             else
             {
                 // ディレクトリなし
-                throw new DirectoryNotFoundException($"Directory not found. path={dirPath}");
+                throw new DirectoryNotFoundException(di.FullName);
             }
         }
 
@@ -1041,7 +1029,7 @@ if (filenameEncoding == null)
         {
             if (!fileInfo.Exists)
             {
-                throw new FileNotFoundException("File not found.", fileInfo.FullName);
+                throw new FileNotFoundException(fileInfo.FullName);
             }
 
             if (fileInfo.FullName.Equals(fileInfo.FullName.TrimEnd()))
@@ -1346,13 +1334,13 @@ if (filenameEncoding == null)
         /// ディレクトリを再帰的に書庫に追加する
         /// </summary>
         /// <param name="baseDir">書庫に格納する親ディレクトリ</param>
-        /// <param name="dirPath">格納するファイルorディレクトリ</param>
+        /// <param name="di">格納するファイルorディレクトリ</param>
         /// <param name="excludeDirectoryNameList">格納対象外とするディレクトリの正規表現リスト(一致するディレクトリ以下が格納対象外となる))</param>
         /// <param name="excludeFileNameList">格納対象外とするファイルの正規表現リスト</param>
         /// <param name="cancelToken"></param>
         /// <remarks></remarks>
         private Task AddZipDirectoryRecursiveAsync(string baseDir,
-                                                  string dirPath,
+                                                  DirectoryInfo di,
                                                   List<Regex> excludeFileNameList,
                                                   List<Regex> excludeDirectoryNameList,
                                                   CancellationToken cancelToken)
@@ -1364,7 +1352,7 @@ if (filenameEncoding == null)
             Task t = Task.Run(async () =>
             {
 
-                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
+                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, di, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
                 await Task.WhenAll(taskList.ToArray()).ConfigureAwait(false);
 
             }, cancelToken);
@@ -1382,20 +1370,19 @@ if (filenameEncoding == null)
         /// ディレクトリを再帰的に書庫に追加する
         /// </summary>
         /// <param name="baseDir"></param>
-        /// <param name="dirPath"></param>
+        /// <param name="di"></param>
         /// <param name="excludeFileNameList"></param>
         /// <param name="excludeDirectoryNameList"></param>
         /// <param name="abort"></param>
         /// <param name="cancelToken"></param>
         /// <returns></returns>
         private List<Task> AddZipDirectoryRecursiveMainAsync(string baseDir,
-                                                      string dirPath,
+                                                      DirectoryInfo di,
                                                       List<Regex> excludeFileNameList,
                                                       List<Regex> excludeDirectoryNameList,
                                                       TaskAbort abort,
                                                       CancellationToken cancelToken)
         {
-            DirectoryInfo di = new DirectoryInfo(dirPath);
             List<Task> taskList = new List<Task>();
 
             // Directoryとファイルのリスト取得
@@ -1448,12 +1435,8 @@ if (filenameEncoding == null)
                 // ファイルの格納
                 string subFile = $"{baseDir}{targetFile.Name}";
 
-                FileInfo fi = targetFile;
-                if (!fi.FullName.Equals(fi.FullName.TrimEnd()))
-                {
-                    fi = new FileInfo($"{targetFile.FullName}.");
-                }
-                taskList.Add(AddZipFileAsync(subFile, fi, CompressionOption, EncryptionOption, targetFile.CreationTime, targetFile.LastWriteTime, targetFile.LastAccessTime, abort, cancelToken));
+                // AddZipFileAsyncを呼び出して非同期でファイルを追加        
+                taskList.Add(AddZipFileAsync(subFile, targetFile, CompressionOption, EncryptionOption, targetFile.CreationTime, targetFile.LastWriteTime, targetFile.LastAccessTime, abort, cancelToken));
             }
 
             // ディレクトリの処理
@@ -1483,7 +1466,7 @@ if (filenameEncoding == null)
                 // サブディレクトリを再帰的に処理
                 string subDir = $"{baseDir}{targetDirectory.Name}/";
                 //AddZipDirectory(subDir, targetDirectory.CreationTime, targetDirectory.LastWriteTime, targetDirectory.LastAccessTime, abort, cancelToken, this.StoreDirectories);
-                taskList.AddRange(AddZipDirectoryRecursiveMainAsync(subDir, $"{targetDirectory.FullName}{dirSplitChars[0]}", excludeFileNameList, excludeDirectoryNameList, abort, cancelToken));
+                taskList.AddRange(AddZipDirectoryRecursiveMainAsync(subDir, targetDirectory, excludeFileNameList, excludeDirectoryNameList, abort, cancelToken));
             }
             return taskList;
         }
@@ -1592,13 +1575,22 @@ if (filenameEncoding == null)
                              DateTime fileAccessTimestamp,
                              CancellationToken cancelToken)
         {
+            if (fi.Exists == false)
+            {
+                throw new FileNotFoundException(fi.FullName);
+            }
+            if (string.IsNullOrEmpty(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
             return AddZipFileAsync(fileName, fi, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, TaskAbort.Create, cancelToken);
         }
 
         /// <summary>
         /// 書庫にファイルの追加を行う(FileInfo)
         /// </summary>
-        /// <param name="fileName">ファイル名</param>
+        /// <param name="storeFileName">ファイル名</param>
         /// <param name="fi">追加するファイルの情報</param>
         /// <param name="compressionOption"></param>
         /// <param name="encryptionOption"></param>
@@ -1608,7 +1600,7 @@ if (filenameEncoding == null)
         /// <param name="abort"></param>
         /// <param name="cancelToken"></param>
         /// <remarks></remarks>
-        private async Task AddZipFileAsync(string fileName,
+        private async Task AddZipFileAsync(string storeFileName,
                                      FileInfo fi,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
@@ -1619,15 +1611,10 @@ if (filenameEncoding == null)
                                      CancellationToken cancelToken)
         {
 
-            if (fi.Exists == false)
-            {
-                throw new FileNotFoundException($"Target file does not exist. path={fi.FullName}");
-            }
 
-            PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
+            PartInfoClass partInfo = EditPartInfo(storeFileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
-            //using(FileStream fs = fi.OpenRead())
-            using (FileStream fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (FileStream fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete, READ_BUFFER_SIZE, FileOptions.SequentialScan | FileOptions.Asynchronous))
             {
                 await this.AddZipFileAsyncSemaphore(partInfo, fs, abort, cancelToken).ConfigureAwait(false);
             }

@@ -41,10 +41,11 @@ namespace YGMailLib.Zip
         /// <summary>
         /// EndOfCentralDirectory(PK0506)検索用のバッファサイズ
         /// </summary>
-		/// <remarks>ZIPコメント(65535)+EndOnCentralDirectory(22)+4</remarks>
+		/// <remarks>ZIPコメント(65535)+EndOnCentralDirectory(22)+Omake(4)</remarks>
         private const int PK0506_SEARCH_BUF_SIZE = 65561;
 
-		internal enum HeaderComptype : UInt16
+        /// <summary>Compression Method</summary>
+        internal enum HeaderComptype : UInt16
 		{
 			DEFLATE = 0x0008,
 			DEFLATE64 = 0x0009,
@@ -58,22 +59,28 @@ namespace YGMailLib.Zip
 		/// <summary>書庫内ファイルリスト</summary>
 		private readonly List<CentralDirectoryInfo> centralDirectoryList = new List<CentralDirectoryInfo>();
 		/// <summary>書庫およびパスワードのエンコーディング</summary>
-		private Encoding defaultZipTextEncoding = ShareMethodClass.AnsiEncoding;
+		private Encoding defaultZipFileNameEncoding = ShareMethodClass.AnsiEncoding;
 		/// <summary>パスワード付きファイルの復号に使用するパスワード</summary>
 		private byte[] defaultPassword = null;
 
-		/// <summary>入力情報を保持する</summary>
-		private readonly UnzipTemp unzipTempStream = null;
-		private readonly SemaphoreSlim zipSemaphore = null;
-		private readonly int semaphoreCount;
+        /// <summary>ZIP書庫のストリーム</summary>
+        private readonly UnzipTemp unzipTempStream = null;
+        /// <summary>起動プロセス数制御のためのSemaphore</summary>
+        private readonly SemaphoreSlim zipSemaphore = null;
+        /// <summary>圧縮処理最大多重度</summary>
+        private readonly int semaphoreCount;
 
+        /// <summary>EndOfCentralDirectory(PK0506)の位置</summary>
         long pk0506pos = -1;
+        /// <summary>EndOfCentralDirectory(PK0606)の位置</summary>
         long pk0606pos = -1;
+        /// <summary>EndOfCentralDirectory(PK0506)情報</summary>
         ZipHeader.PK0506Info pk0506 = null;
-		ZipHeader.PK0606Info pk0606 = null;
+        /// <summary>EndOfCentralDirectory(PK0606)情報</summary>
+        ZipHeader.PK0606Info pk0606 = null;
 
         /// <summary>処理中のファイル</summary>
-        private readonly ConcurrentDictionary<CentralDirectoryInfo, bool> inprocFile = new ConcurrentDictionary<CentralDirectoryInfo, bool>();
+        private readonly ConcurrentDictionary<CentralDirectoryInfo, bool> processingFiles = new ConcurrentDictionary<CentralDirectoryInfo, bool>();
 
         #endregion
 
@@ -93,14 +100,14 @@ namespace YGMailLib.Zip
 		{
 			get
 			{
-				return defaultZipTextEncoding;
+				return defaultZipFileNameEncoding;
 			}
 			set
 			{
-				defaultZipTextEncoding = value;
+				defaultZipFileNameEncoding = value;
 				foreach (CentralDirectoryInfo cdir in centralDirectoryList)
 				{
-					cdir.ZipFileNameEncoding = defaultZipTextEncoding;
+					cdir.ZipFileNameEncoding = defaultZipFileNameEncoding;
 				}
 			}
 		}
@@ -138,7 +145,7 @@ namespace YGMailLib.Zip
 		/// <value></value>
 		/// <returns></returns>
 		/// <remarks></remarks>
-		public List<CentralDirectoryInfo> GetFileList
+		public List<CentralDirectoryInfo> FileList
 		{
 			get
 			{
@@ -148,10 +155,20 @@ namespace YGMailLib.Zip
 			}
 		}
 
-		/// <summary>
-		/// 実行中の展開プロセス数
-		/// </summary>
-		public int DecompressionProcs => semaphoreCount - zipSemaphore.CurrentCount;
+        /// <summary>
+        /// 書庫内のファイル一覧を取得
+        /// </summary>
+        /// <value></value>
+        /// <returns></returns>
+        /// <remarks></remarks>
+        [Obsolete("Use FileList instead.", false)]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public List<CentralDirectoryInfo> GetFileList => FileList;
+
+        /// <summary>
+        /// 実行中の展開プロセス数
+        /// </summary>
+        public int DecompressionProcs => semaphoreCount - zipSemaphore.CurrentCount;
 
         /// <summary>
         /// 処理中のファイルを返却<br />
@@ -161,7 +178,7 @@ namespace YGMailLib.Zip
             get
             {
                 List<string> list = new List<string>();
-                inprocFile.Keys.ToList().ForEach(cd => {
+                processingFiles.Keys.ToList().ForEach(cd => {
                     list.Add(cd.FullName);
                 });
                 return list.ToArray();
@@ -1296,7 +1313,7 @@ namespace YGMailLib.Zip
 				try
 				{
 
-					inprocFile.TryAdd(centralDirectory, true);
+					processingFiles.TryAdd(centralDirectory, true);
 
 					// タスクキャンセル判定
 					cancelToken.ThrowIfCancellationRequested();
@@ -1345,7 +1362,7 @@ namespace YGMailLib.Zip
 				finally
 				{
 					this.zipSemaphore.Release();
-					inprocFile.TryRemove(centralDirectory, out bool dmy);
+					processingFiles.TryRemove(centralDirectory, out bool dmy);
 				}
 
 			}, cancelToken);
@@ -1404,6 +1421,7 @@ namespace YGMailLib.Zip
         /// <param name="centralDirectory">CentralDirectory</param>
         /// <param name="outStream">出力先ストリーム</param>
         /// <param name="password">パスワード</param>
+		/// <param name="abort">タスクキャンセル用のAbortオブジェクト</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
         private Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, byte[] password, TaskAbort abort, CancellationToken cancelToken)
@@ -1428,7 +1446,7 @@ namespace YGMailLib.Zip
 				try
 				{
 
-					inprocFile.TryAdd(centralDirectory, false);
+					processingFiles.TryAdd(centralDirectory, false);
 
                     // タスクキャンセル判定
                     cancelToken.ThrowIfCancellationRequested();
@@ -1464,7 +1482,7 @@ namespace YGMailLib.Zip
 				finally
 				{
 					this.zipSemaphore.Release();
-					inprocFile.TryRemove(centralDirectory, out bool dmy);
+					processingFiles.TryRemove(centralDirectory, out bool dmy);
 				}
 
 			}, cancelToken);
@@ -1670,23 +1688,58 @@ namespace YGMailLib.Zip
         /// <remarks></remarks>
         private static string CheckDirectory(DirectoryInfo outputDirectory, CentralDirectoryInfo centralDirectory)
 		{
-			// ディレクトリ名未指定
-            if (string.IsNullOrEmpty(centralDirectory.DirectoryName))
+            // 出力先ディレクトリチェック
+            if (outputDirectory == null) throw new ArgumentNullException(nameof(outputDirectory));
+			if (outputDirectory.Exists == false)
 			{
-				throw new IOException($"InvalidDirectoryName:{centralDirectory}");
-			}
+				throw new DirectoryNotFoundException($"Output directory does not exist: {outputDirectory.FullName}");
+            }
 
-			string workDir = Path.GetFullPath(Path.Combine(outputDirectory.FullName, ShareMethodClass.ReplaceInvPathChar(centralDirectory.DirectoryName)));
-
-            // 作成するディレクトリが出力先に指定されているディレクトリと異なる
-            if (!workDir.StartsWith(outputDirectory.FullName, StringComparison.OrdinalIgnoreCase))
+            // ディレクトリ名未指定
+            if (string.IsNullOrEmpty(centralDirectory.DirectoryName))
             {
-                throw new IOException($"InvalidDirectoryName:OutputFile={workDir},OutputDir={outputDirectory.FullName},{centralDirectory}");
+                throw new IOException($"InvalidDirectoryName:{centralDirectory}");
 			}
-			return workDir;
-		}
 
-		private static string CheckFileName(DirectoryInfo outputDirectory, CentralDirectoryInfo centralDirectory)
+            // アーカイブ内の相対ディレクトリ名を不正文字置換
+            string sanitizedRelative = ShareMethodClass.ReplaceInvPathChar(centralDirectory.DirectoryName);
+
+            // 絶対パス指定は拒否（例: "C:\..." や "/..."）
+            if (Path.IsPathRooted(sanitizedRelative))
+            {
+                throw new IOException($"InvalidDirectoryName(absolute path):{centralDirectory}");
+            }
+
+            // 出力先の絶対パス（正規化）
+            string baseFullPath = Path.GetFullPath(outputDirectory.FullName);
+
+            // 結合して正規化
+            string candidateFullPath = Path.GetFullPath(Path.Combine(baseFullPath, sanitizedRelative));
+
+            // 厳密な前方一致のため、末尾に区切りを付与して比較
+            string baseWithSep = baseFullPath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal)
+                ? baseFullPath
+                : baseFullPath + Path.DirectorySeparatorChar;
+
+            // OS毎の既定比較（Windowsは大小無視、他は大小区別）
+            StringComparison cmp =
+                (Environment.OSVersion.Platform == PlatformID.Win32NT ||
+                 Environment.OSVersion.Platform == PlatformID.Win32S ||
+                 Environment.OSVersion.Platform == PlatformID.Win32Windows ||
+                 Environment.OSVersion.Platform == PlatformID.WinCE)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            // 出力先ディレクトリ配下であることを検証（C:\out と C:\out2 の誤一致を防止）
+            if (!candidateFullPath.StartsWith(baseWithSep, cmp))
+            {
+                throw new IOException($"InvalidDirectoryName:OutputFile={candidateFullPath},OutputDir={baseFullPath},{centralDirectory}");
+            }
+
+            return candidateFullPath;
+        }
+
+        private static string CheckFileName(DirectoryInfo outputDirectory, CentralDirectoryInfo centralDirectory)
 		{
 			if (string.IsNullOrEmpty(centralDirectory.FileName))
 			{
@@ -1734,7 +1787,7 @@ namespace YGMailLib.Zip
 					default:
 						// AES暗号化じゃなければ TRADITIONAL PKWARE Encryption と仮定する
 						UInt32 checkCrc;
-						if((centralDirectory.Flag & (UInt16)ZipArcClass.HeaderGeneralFlag.DESCRIPTION_EXISTS) == 0)
+						if((centralDirectory.Flag & (UInt16)ZipArcClass.HeaderGeneralFlag.DESCRIPTION_PRESENT) == 0)
                         {
 							checkCrc = centralDirectory.Crc32;
                         }
@@ -2020,7 +2073,7 @@ namespace YGMailLib.Zip
                     // TODO: マネージド状態を破棄します (マネージド オブジェクト)
 
                     unzipTempStream?.Dispose();
-                    defaultZipTextEncoding = null;
+                    defaultZipFileNameEncoding = null;
 					if(defaultPassword != null)
 					{
                         // パスワードのバイト配列をクリア
@@ -2030,6 +2083,7 @@ namespace YGMailLib.Zip
                         }
                     }
                     defaultPassword = null;
+					zipSemaphore?.Dispose();
 
                 }
 

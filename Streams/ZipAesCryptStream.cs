@@ -81,16 +81,16 @@ namespace YGMailLib.Zip.Streams
         private readonly StreamMode streamMode;
 
         /// <summary>暗号化用マスク配列</summary>
-        private byte[] maskBytes;
+        private byte[] aesMaskBytes;
 
         /// <summary>マスク用配列ポインタ</summary>
-        private int maskPosition = 0;
+        private int aesMaskPosition = 0;
 
         ///// <summary>マスク配列サイズ</summary>
         //private readonly int maskSize = (int)MASK_SIZE;
 
         /// <summary>マスク作成タスク</summary>
-        private readonly AesMaskThread aesMaskTask = null;
+        private readonly AesMaskThread aesMaskThread = null;
 
 
 #if NET7_0_OR_GREATER
@@ -151,11 +151,11 @@ namespace YGMailLib.Zip.Streams
 #endif
 
             // マスク配列作成スレッド取得
-            aesMaskTask = AesMaskThreadPool.GetThread();
+            aesMaskThread = AesMaskThreadPool.GetThread();
 
             try
             {
-                maskPosition = MASK_SIZE;
+                aesMaskPosition = MASK_SIZE;
                 // ストリームモード設定
                 this.streamMode = streamMode;
 
@@ -212,13 +212,13 @@ namespace YGMailLib.Zip.Streams
                 }
 
                 //// マスク配列作成処理初回起動
-                //aesMaskTask.Start();
+                //aesMaskThread.Start();
 
             }
             catch (Exception)
             {
-                aesMaskTask?.Dispose();
-                aesMaskTask = null;
+                aesMaskThread?.Dispose();
+                aesMaskThread = null;
                 throw;
             }
 
@@ -835,7 +835,7 @@ namespace YGMailLib.Zip.Streams
             byte[] aesIv = new byte[16];
 
             // AES Encryptor作成
-            aesMaskTask.SetAesKey(aesKey, aesIv);
+            aesMaskThread.SetAesKey(aesKey, aesIv);
 
             // HMACSHA1
             calcHmac = new HMACSHA1(hmacKey);
@@ -858,13 +858,13 @@ namespace YGMailLib.Zip.Streams
 #endif
 
             // マスク配列設定
-            maskBytes = aesMaskTask.GetMaskArray();
+            aesMaskBytes = aesMaskThread.GetMaskArray();
 
 #if DEBUG
             getNextMaskWaitTime += stp.Elapsed.TotalMilliseconds;
 #endif
 
-            maskPosition = 0;
+            aesMaskPosition = 0;
 
         }
 
@@ -889,21 +889,21 @@ namespace YGMailLib.Zip.Streams
                 while (xorCount < count)
                 {
                     // 次のマスク配列取得
-                    if (maskPosition == MASK_SIZE)
+                    if (aesMaskPosition == MASK_SIZE)
                     {
                         GetNextMask();
                     }
 
-                    fixed (byte* mp = maskBytes)
+                    fixed (byte* mp = aesMaskBytes)
                     {
-                        long* mlp = (long*)(mp + maskPosition);
+                        long* mlp = (long*)(mp + aesMaskPosition);
 
 #if NET7_0_OR_GREATER
                         if (vector512Supported)
                         {
                             iCount = count - 64;
                             iMaskSize = MASK_SIZE - 64;
-                            for (iPtr = 0; xorCount <= iCount && maskPosition <= iMaskSize; xorCount += 64, maskPosition += 64, iPtr += 8)
+                            for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 64, aesMaskPosition += 64, iPtr += 8)
                             {
                                 Vector512.StoreUnsafe(Vector512.Xor(Vector512.LoadUnsafe(ref *alp, iPtr), Vector512.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
                             }
@@ -914,7 +914,7 @@ namespace YGMailLib.Zip.Streams
                         {
                             iCount = count - 32;
                             iMaskSize = MASK_SIZE - 32;
-                            for (iPtr = 0; xorCount <= iCount && maskPosition <= iMaskSize; xorCount += 32, maskPosition += 32, iPtr += 4)
+                            for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 32, aesMaskPosition += 32, iPtr += 4)
                             {
                                 Vector256.StoreUnsafe(Vector256.Xor(Vector256.LoadUnsafe(ref *alp, iPtr), Vector256.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
                             }
@@ -925,7 +925,7 @@ namespace YGMailLib.Zip.Streams
                         {
                             iCount = count - 16;
                             iMaskSize = MASK_SIZE - 16;
-                            for (iPtr = 0; xorCount <= iCount && maskPosition <= iMaskSize; xorCount += 16, maskPosition += 16, iPtr += 2)
+                            for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 16, aesMaskPosition += 16, iPtr += 2)
                             {
                                 Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
                             }
@@ -938,7 +938,7 @@ namespace YGMailLib.Zip.Streams
                             // AVX2 を使用して32Byte単位にxor
                             iCount = count - 32;
                             iMaskSize = MASK_SIZE - 32;
-                            for (; xorCount <= iCount && maskPosition <= iMaskSize; xorCount += 32, maskPosition += 32, alp += 4, mlp += 4)
+                            for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 32, aesMaskPosition += 32, alp += 4, mlp += 4)
                             {
                                 Avx2.Store(alp, Avx2.Xor(Avx2.LoadVector256(alp), Avx2.LoadVector256(mlp)));
                             }
@@ -948,7 +948,7 @@ namespace YGMailLib.Zip.Streams
                             //  AdvSIMD を使用して16Byte単位にxor
                             iCount = count - 16;
                             iMaskSize = MASK_SIZE - 16;
-                            for (; xorCount <= iCount && maskPosition <= iMaskSize; xorCount += 16, maskPosition += 16, alp += 2, mlp += 2)
+                            for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 16, aesMaskPosition += 16, alp += 2, mlp += 2)
                             {
                                 AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
                             }
@@ -958,7 +958,7 @@ namespace YGMailLib.Zip.Streams
                         // 8byte単位にxor
                         iCount = count - 8;
                         iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && maskPosition <= iMaskSize; xorCount += 8, maskPosition += 8)
+                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
                         {
                             *alp++ ^= *mlp++;
                         }
@@ -966,7 +966,7 @@ namespace YGMailLib.Zip.Streams
                         // 1byte単位にxor
                         byte* abp = (byte*)alp;
                         byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (maskPosition) < MASK_SIZE; xorCount++, maskPosition++)
+                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
                         {
                             *abp = (byte)(*abp++ ^ *mbp++);
                         }
@@ -1143,12 +1143,12 @@ namespace YGMailLib.Zip.Streams
                 if (disposing)
                 {
 #if DEBUG
-                    Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream: ConstructorElaps={constructorExecTime}ms, ReadWriteCount={readWriteCount}, ReadWriteElaps={readWriteTime}ms, GetNextMaskTotalTime={aesMaskTask.GetNextMaskTime}ms, GetNextMaskTotalWaittime={getNextMaskWaitTime}ms");
+                    Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream: ConstructorElaps={constructorExecTime}ms, ReadWriteCount={readWriteCount}, ReadWriteElaps={readWriteTime}ms, GetNextMaskTotalTime={aesMaskThread.GetNextMaskTime}ms, GetNextMaskTotalWaittime={getNextMaskWaitTime}ms");
 #endif
-                    if (aesMaskTask != null)
+                    if (aesMaskThread != null)
                     {
-                        //try { aesMaskTask.Dispose(); } catch (Exception) { }
-                        AesMaskThreadPool.ReturnThread(aesMaskTask);
+                        //try { aesMaskThread.Dispose(); } catch (Exception) { }
+                        AesMaskThreadPool.ReturnThread(aesMaskThread);
                     }
                     try { calcHmac?.Dispose(); } catch { } finally { calcHmac = null; }
                     writeStream = null;

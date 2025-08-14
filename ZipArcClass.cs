@@ -8,6 +8,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+#if DEBUG
+using System.Diagnostics;
+#endif
 #if YGZIPLIB
 using YGZipLib.Common;
 using YGZipLib.Streams;
@@ -24,19 +27,10 @@ namespace YGMailLib.Zip
 #endif
 {
 
+    /// <summary>ZIP書庫作成クラス</summary>
 #if YGZIPLIB
-    /// <summary>
-    /// ZIP書庫作成クラス
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
     public class ZipArcClass : IDisposable
 #else
-	/// <summary>
-	/// ZIP書庫作成クラス
-	/// </summary>
-	/// <remarks>
-	/// </remarks>
     internal class ZipArcClass : IDisposable
 #endif
     {
@@ -92,7 +86,7 @@ namespace YGMailLib.Zip
         internal enum HeaderGeneralFlag : UInt16
         {
             ENCRYPTION = 0x0001,
-            DESCRIPTION_EXISTS = 0x0008,
+            DESCRIPTION_PRESENT = 0x0008,
             UTF_ENCODING = 0x0800
         }
 
@@ -159,7 +153,7 @@ namespace YGMailLib.Zip
         private FileStream baseFileStream = null;
 
         /// <summary>パート情報格納用リスト</summary>
-        private readonly ConcurrentQueue<PartInfoClass> partInfoList = new ConcurrentQueue<PartInfoClass>();
+        private readonly Queue<PartInfoClass> partInfoList = new Queue<PartInfoClass>();
 
         /// <summary>ディレクトリ辞書(格納ディレクトリ名)</summary>
         private readonly Dictionary<string, bool> dirDic = new Dictionary<string, bool>();
@@ -189,7 +183,7 @@ namespace YGMailLib.Zip
         private readonly int semaphoreCount = 0;
 
         /// <summary>処理中のファイル</summary>
-        private readonly ConcurrentDictionary<PartInfoClass, bool> inprocFile = new ConcurrentDictionary<PartInfoClass, bool>();
+        private readonly ConcurrentDictionary<PartInfoClass, bool> processingFiles = new ConcurrentDictionary<PartInfoClass, bool>();
 
         /// <summary>セントラルディレクトリのエントリ件数</summary>
         private int directoryEntries = 0;
@@ -342,7 +336,7 @@ if (filenameEncoding == null)
         /// 書庫に格納済みのファイルとディレクトリの総数
         /// </summary>
         /// <returns></returns>
-        public int ZipFileCount => partInfoList.Count;
+        public int ZipFileCount { get; private set; } = 0;
 
         /// <summary>
         /// 出力済のZIP書庫サイズ
@@ -380,13 +374,9 @@ if (filenameEncoding == null)
             get
             {
                 List<string> list = new List<string>();
-                inprocFile?.Keys.ToList().ForEach(part => {
+                processingFiles?.Keys.ToList().ForEach(part => {
                     list.Add(part.FullName);
                 });
-                if (list.Count == 0)
-                {
-                    list.Add(string.Empty);
-                }
                 return list.ToArray();
             }
         }
@@ -487,7 +477,7 @@ if (filenameEncoding == null)
 
         #region "格納系PublicMethods"
 
-        #region "AddDirectory系"
+        #region "AddNewDirectory系"
 
         /// <summary>
         /// 空のディレクトリを追加する
@@ -506,9 +496,9 @@ if (filenameEncoding == null)
         /// <param name="storeDirectoryName">追加するディレクトリ名</param>
         /// <remarks>
         /// </remarks>
-        public Task AddNewDirectoryAsync(string storeDirectoryName)
+        public async Task AddNewDirectoryAsync(string storeDirectoryName)
         {
-            return AddNewDirectoryAsync(storeDirectoryName, DateTime.Now);
+            await AddNewDirectoryAsync(storeDirectoryName, DateTime.Now).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -530,9 +520,9 @@ if (filenameEncoding == null)
         /// <param name="timeStamp">ディレクトリのタイムスタンプ</param>
         /// <remarks>
         /// </remarks>
-        public Task AddNewDirectoryAsync(string storeDirectoryName, DateTime timeStamp)
+        public async Task AddNewDirectoryAsync(string storeDirectoryName, DateTime timeStamp)
         {
-            return AddNewDirectoryAsync(storeDirectoryName, timeStamp, timeStamp, timeStamp);
+            await AddNewDirectoryAsync(storeDirectoryName, timeStamp, timeStamp, timeStamp).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -560,6 +550,10 @@ if (filenameEncoding == null)
             return Task.CompletedTask;
         }
 
+        #endregion
+
+        #region "AddDirectory系"
+
         /// <summary>
         /// 指定ディレクトリの配下のファイルをすべて書庫に格納する
         /// </summary>
@@ -575,9 +569,9 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="dirPath">格納するフォルダのパス</param>
         /// <remarks></remarks>
-        public Task AddDirectoryAsync(string dirPath)
+        public async Task AddDirectoryAsync(string dirPath)
         {
-            return AddDirectoryAsync(dirPath, null);
+            await AddDirectoryAsync(dirPath, null).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -597,9 +591,9 @@ if (filenameEncoding == null)
         /// <param name="dirPath">格納するフォルダのパス</param>
         /// <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
         /// <remarks></remarks>
-        public Task AddDirectoryAsync(string dirPath, string baseDir)
+        public async Task AddDirectoryAsync(string dirPath, string baseDir)
         {
-            return AddDirectoryAsync(dirPath, baseDir, null, null);
+            await AddDirectoryAsync(dirPath, baseDir, null, null).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -609,9 +603,9 @@ if (filenameEncoding == null)
         /// <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddDirectoryAsync(string dirPath, string baseDir, CancellationToken cancelToken)
+        public async Task AddDirectoryAsync(string dirPath, string baseDir, CancellationToken cancelToken)
         {
-            return AddDirectoryAsync(dirPath, baseDir, null, null, cancelToken);
+            await AddDirectoryAsync(dirPath, baseDir, null, null, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -624,7 +618,10 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddDirectory(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList)
         {
-            AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList).GetAwaiter().GetResult();
+            Task.Run(async () =>
+            {
+                await AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList).ConfigureAwait(false);
+            }).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -635,9 +632,9 @@ if (filenameEncoding == null)
         /// <param name="excludeFileNameList">格納対象外とするファイル名の正規表現リスト</param>
         /// <param name="excludeDirectoryNameList">格納対象外とするディレクトリ名の正規表現リスト</param>
         /// <remarks></remarks>
-        public Task AddDirectoryAsync(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList)
+        public async Task AddDirectoryAsync(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList)
         {
-            return AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList, CancellationToken.None);
+            await AddDirectoryAsync(dirPath, baseDir, excludeFileNameList, excludeDirectoryNameList, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -649,23 +646,29 @@ if (filenameEncoding == null)
         /// <param name="excludeDirectoryNameList">格納対象外とするディレクトリ名の正規表現リスト</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddDirectoryAsync(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList, CancellationToken cancelToken)
+        public async Task AddDirectoryAsync(string dirPath, string baseDir, List<Regex> excludeFileNameList, List<Regex> excludeDirectoryNameList, CancellationToken cancelToken)
         {
             DirectoryInfo di = new DirectoryInfo(dirPath);
             if (di.Exists == true)
             {
-                // ディレクトリ存在
+                // ディレクトリ内に格納するファイルがある場合は、ディレクトリを作成して格納する
                 if (string.IsNullOrEmpty(baseDir))
                 {
                     // ディレクトリを作成しないで格納
-                    return AddZipDirectoryRecuriveAsync(string.Empty, di.FullName, excludeFileNameList, excludeDirectoryNameList, cancelToken);
+                    await AddZipDirectoryRecursiveAsync(string.Empty, di.FullName, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
                 }
-                // ディレクトリを作成して格納
-                string zipBaseDir = dirReplaceRegex.Replace(baseDir, "");
-                return AddZipDirectoryRecuriveAsync($"{zipBaseDir}/", di.FullName, excludeFileNameList, excludeDirectoryNameList, cancelToken);
+                else
+                {
+                    // ディレクトリを作成して格納
+                    string zipBaseDir = dirReplaceRegex.Replace(baseDir, "");
+                    await AddZipDirectoryRecursiveAsync($"{zipBaseDir}/", di.FullName, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
+                }
             }
-            // ディレクトリなし
-            throw new DirectoryNotFoundException($"Directory not found. path={dirPath}");
+            else
+            {
+                // ディレクトリなし
+                throw new DirectoryNotFoundException($"Directory not found. path={dirPath}");
+            }
         }
 
         #endregion
@@ -680,7 +683,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileStream(string storeFileName, Stream storeStream)
         {
-            AddFileStreamAsync(storeFileName, storeStream).GetAwaiter().GetResult();
+            AddFileStream(storeFileName, storeStream, DateTime.Now);
         }
 
         /// <summary>
@@ -689,9 +692,9 @@ if (filenameEncoding == null)
         /// <param name="storeFileName">格納ファイル名</param>
         /// <param name="storeStream">追加するストリーム</param>
         /// <remarks></remarks>
-        public Task AddFileStreamAsync(string storeFileName, Stream storeStream)
+        public async Task AddFileStreamAsync(string storeFileName, Stream storeStream)
         {
-            return AddFileStreamAsync(storeFileName, storeStream, CancellationToken.None);
+            await AddFileStreamAsync(storeFileName, storeStream, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -701,9 +704,9 @@ if (filenameEncoding == null)
         /// <param name="storeStream">追加するストリーム</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileStreamAsync(string storeFileName, Stream storeStream, CancellationToken cancelToken)
+        public async Task AddFileStreamAsync(string storeFileName, Stream storeStream, CancellationToken cancelToken)
         {
-            return AddFileStreamAsync(storeFileName, storeStream, DateTime.Now, cancelToken);
+            await AddFileStreamAsync(storeFileName, storeStream, DateTime.Now, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -715,7 +718,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileStream(string storeFileName, Stream storeStream, DateTime timeStamp)
         {
-            AddFileStreamAsync(storeFileName, storeStream, timeStamp).GetAwaiter().GetResult();
+            AddFileStream(storeFileName, storeStream, timeStamp, timeStamp, timeStamp);
         }
 
         /// <summary>
@@ -725,9 +728,9 @@ if (filenameEncoding == null)
         /// <param name="storeStream">追加するファイルのストリーム</param>
         /// <param name="timeStamp">ファイルのタイムスタンプ</param>
         /// <remarks></remarks>
-        public Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime timeStamp)
+        public async Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime timeStamp)
         {
-            return AddFileStreamAsync(storeFileName, storeStream, timeStamp, CancellationToken.None);
+            await AddFileStreamAsync(storeFileName, storeStream, timeStamp, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -738,9 +741,9 @@ if (filenameEncoding == null)
         /// <param name="timeStamp">ファイルのタイムスタンプ</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime timeStamp, CancellationToken cancelToken)
+        public async Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime timeStamp, CancellationToken cancelToken)
         {
-            return AddFileStreamAsync(storeFileName, storeStream, timeStamp, timeStamp, timeStamp, cancelToken);
+            await AddFileStreamAsync(storeFileName, storeStream, timeStamp, timeStamp, timeStamp, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -752,9 +755,13 @@ if (filenameEncoding == null)
         /// <param name="lastWriteTimeStamp">ファイルの更新日時</param>
         /// <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
         /// <remarks></remarks>
-        public void AddStreamFile(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
+        public void AddFileStream(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
         {
-            AddFileStreamAsync(storeFileName, storeStream, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).GetAwaiter().GetResult();
+            Task.Run(async () =>
+            {
+                await AddFileStreamAsync(storeFileName, storeStream, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).ConfigureAwait(false);
+            }).GetAwaiter().GetResult();
+            
         }
 
         /// <summary>
@@ -766,9 +773,9 @@ if (filenameEncoding == null)
         /// <param name="lastWriteTimeStamp">ファイルの更新日時</param>
         /// <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
         /// <remarks></remarks>
-        public Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
+        public async Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
         {
-            return AddFileStreamAsync(storeFileName, storeStream, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, CancellationToken.None);
+            await AddFileStreamAsync(storeFileName, storeStream, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -781,9 +788,9 @@ if (filenameEncoding == null)
         /// <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
+        public async Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
         {
-            return AddZipFileAsync(storeFileName, storeStream, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken);
+            await AddZipFileAsync(storeFileName, storeStream, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -794,7 +801,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileBytes(string storeFileName, byte[] byteData)
         {
-            AddFileBytesAsync(storeFileName, byteData).GetAwaiter().GetResult();
+            AddFileBytes(storeFileName, byteData, DateTime.Now);
         }
 
         /// <summary>
@@ -803,9 +810,9 @@ if (filenameEncoding == null)
         /// <param name="storeFileName">格納ファイル名</param>
         /// <param name="byteData">追加するバイト配列</param>
         /// <remarks></remarks>
-        public Task AddFileBytesAsync(string storeFileName, byte[] byteData)
+        public async Task AddFileBytesAsync(string storeFileName, byte[] byteData)
         {
-            return AddFileBytesAsync(storeFileName, byteData, CancellationToken.None);
+            await AddFileBytesAsync(storeFileName, byteData, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -815,9 +822,9 @@ if (filenameEncoding == null)
         /// <param name="byteData">追加するバイト配列</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileBytesAsync(string storeFileName, byte[] byteData, CancellationToken cancelToken)
+        public async Task AddFileBytesAsync(string storeFileName, byte[] byteData, CancellationToken cancelToken)
         {
-            return AddFileBytesAsync(storeFileName, byteData, DateTime.Now, cancelToken);
+            await AddFileBytesAsync(storeFileName, byteData, DateTime.Now, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -829,7 +836,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileBytes(string storeFileName, byte[] byteData, DateTime timeStamp)
         {
-            AddFileBytesAsync(storeFileName, byteData, timeStamp).GetAwaiter().GetResult();
+            AddFileBytes(storeFileName, byteData, timeStamp, timeStamp, timeStamp);
         }
 
         /// <summary>
@@ -839,9 +846,9 @@ if (filenameEncoding == null)
         /// <param name="byteData">追加するバイト配列</param>
         /// <param name="timeStamp">ファイルのタイムスタンプ</param>
         /// <remarks></remarks>
-        public Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime timeStamp)
+        public async Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime timeStamp)
         {
-            return AddFileBytesAsync(storeFileName, byteData, timeStamp, CancellationToken.None);
+            await AddFileBytesAsync(storeFileName, byteData, timeStamp, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -852,9 +859,9 @@ if (filenameEncoding == null)
         /// <param name="timeStamp">ファイルのタイムスタンプ</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime timeStamp, CancellationToken cancelToken)
+        public async Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime timeStamp, CancellationToken cancelToken)
         {
-            return AddFileBytesAsync(storeFileName, byteData, timeStamp, timeStamp, timeStamp, cancelToken);
+            await AddFileBytesAsync(storeFileName, byteData, timeStamp, timeStamp, timeStamp, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -868,7 +875,9 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileBytes(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
         {
-            AddFileBytesAsync(storeFileName, byteData, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).GetAwaiter().GetResult();
+            Task.Run(async () => {
+                await AddFileBytesAsync(storeFileName, byteData, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp).ConfigureAwait(false);
+            }).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -880,9 +889,9 @@ if (filenameEncoding == null)
         /// <param name="lastWriteTimeStamp">ファイルの更新日時</param>
         /// <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
         /// <remarks></remarks>
-        public Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
+        public async Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp)
         {
-            return AddFileBytesAsync(storeFileName, byteData, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, CancellationToken.None);
+            await AddFileBytesAsync(storeFileName, byteData, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -895,9 +904,9 @@ if (filenameEncoding == null)
         /// <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
+        public async Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
         {
-            return AddZipFileAsync(storeFileName, byteData, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken);
+            await AddZipFileAsync(storeFileName, byteData, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -907,7 +916,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFilePath(string filePath)
         {
-            AddFilePathAsync(filePath).GetAwaiter().GetResult();
+            AddFilePath(Path.GetFileName(filePath), filePath);
         }
 
         /// <summary>
@@ -915,9 +924,9 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="filePath">追加するファイルのパス</param>
         /// <remarks></remarks>
-        public Task AddFilePathAsync(string filePath)
+        public async Task AddFilePathAsync(string filePath)
         {
-            return AddFilePathAsync(filePath, CancellationToken.None);
+            await AddFilePathAsync(filePath, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -926,10 +935,9 @@ if (filenameEncoding == null)
         /// <param name="filePath">追加するファイルのパス</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFilePathAsync(string filePath, CancellationToken cancelToken)
+        public async Task AddFilePathAsync(string filePath, CancellationToken cancelToken)
         {
-            string storeFileName = Path.GetFileName(filePath);
-            return AddFilePathAsync(storeFileName, filePath, cancelToken);
+            await AddFilePathAsync(Path.GetFileName(filePath), filePath, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -940,7 +948,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFilePath(string storeFileName, string filePath)
         {
-            AddFilePathAsync(storeFileName, filePath).GetAwaiter().GetResult();
+            AddFileInfo(storeFileName, new FileInfo(filePath));
         }
 
         /// <summary>
@@ -949,9 +957,9 @@ if (filenameEncoding == null)
         /// <param name="storeFileName">格納ファイル名</param>
         /// <param name="filePath">追加するファイルのパス</param>
         /// <remarks></remarks>
-        public Task AddFilePathAsync(string storeFileName, string filePath)
+        public async Task AddFilePathAsync(string storeFileName, string filePath)
         {
-            return AddFilePathAsync(storeFileName, filePath, CancellationToken.None);
+            await AddFilePathAsync(storeFileName, filePath, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -961,10 +969,9 @@ if (filenameEncoding == null)
         /// <param name="filePath">追加するファイルのパス</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFilePathAsync(string storeFileName, string filePath, CancellationToken cancelToken)
+        public async Task AddFilePathAsync(string storeFileName, string filePath, CancellationToken cancelToken)
         {
-            FileInfo fi = new FileInfo(filePath);
-            return AddFileInfoAsync(storeFileName, fi, cancelToken);
+            await AddFileInfoAsync(storeFileName, new FileInfo(filePath), cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -974,7 +981,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileInfo(FileInfo fileInfo)
         {
-            AddFileInfoAsync(fileInfo).GetAwaiter().GetResult();
+            AddFileInfo(fileInfo.Name, fileInfo);
         }
 
         /// <summary>
@@ -982,9 +989,9 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="fileInfo">FileInfo</param>
         /// <remarks></remarks>
-        public Task AddFileInfoAsync(FileInfo fileInfo)
+        public async Task AddFileInfoAsync(FileInfo fileInfo)
         {
-            return AddFileInfoAsync(fileInfo, CancellationToken.None);
+            await AddFileInfoAsync(fileInfo, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -993,9 +1000,9 @@ if (filenameEncoding == null)
         /// <param name="fileInfo">FileInfo</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileInfoAsync(FileInfo fileInfo, CancellationToken cancelToken)
+        public async Task AddFileInfoAsync(FileInfo fileInfo, CancellationToken cancelToken)
         {
-            return AddFileInfoAsync(fileInfo.Name, fileInfo, cancelToken);
+            await AddFileInfoAsync(fileInfo.Name, fileInfo, cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1006,7 +1013,10 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public void AddFileInfo(string storeFileName, FileInfo fileInfo)
         {
-            AddFileInfoAsync(storeFileName, fileInfo).GetAwaiter().GetResult();
+            Task.Run(async () =>
+            {
+                await AddFileInfoAsync(storeFileName, fileInfo).ConfigureAwait(false);
+            }).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -1015,9 +1025,9 @@ if (filenameEncoding == null)
         /// <param name="storeFileName">格納ファイル名</param>
         /// <param name="fileInfo">FileInfo</param>
         /// <remarks></remarks>
-        public Task AddFileInfoAsync(string storeFileName, FileInfo fileInfo)
+        public async Task AddFileInfoAsync(string storeFileName, FileInfo fileInfo)
         {
-            return AddFileInfoAsync(storeFileName, fileInfo, CancellationToken.None);
+            await AddFileInfoAsync(storeFileName, fileInfo, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1027,7 +1037,7 @@ if (filenameEncoding == null)
         /// <param name="fileInfo">FileInfo</param>
         /// <param name="cancelToken">キャンセルトークン</param>
         /// <remarks></remarks>
-        public Task AddFileInfoAsync(string storeFileName, FileInfo fileInfo, CancellationToken cancelToken)
+        public async Task AddFileInfoAsync(string storeFileName, FileInfo fileInfo, CancellationToken cancelToken)
         {
             if (!fileInfo.Exists)
             {
@@ -1036,12 +1046,14 @@ if (filenameEncoding == null)
 
             if (fileInfo.FullName.Equals(fileInfo.FullName.TrimEnd()))
             {
-                return AddZipFileAsync(storeFileName, fileInfo, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken);
+                await AddZipFileAsync(storeFileName, fileInfo, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // 最後がSPACEで終了しているファイル名対応
+                await AddZipFileAsync(storeFileName, new FileInfo($"{fileInfo.FullName}."), CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken).ConfigureAwait(false);
             }
 
-            // 最後がSPACEで終了しているファイル名対応
-            FileInfo fileInfo2 = new FileInfo($"{fileInfo.FullName}.");
-            return AddZipFileAsync(storeFileName, fileInfo2, CompressionOption, EncryptionOption, fileInfo.CreationTime, fileInfo.LastWriteTime, fileInfo.LastAccessTime, cancelToken);
         }
 
         #endregion
@@ -1067,9 +1079,9 @@ if (filenameEncoding == null)
         /// </summary>
         /// <remarks>
         /// </remarks>
-        public Task FinishAsync()
+        public async Task FinishAsync()
         {
-            return this.FinishAsync(CancellationToken.None);
+            await this.FinishAsync(CancellationToken.None);
         }
 
         /// <summary>
@@ -1126,9 +1138,12 @@ if (filenameEncoding == null)
 
                 // PK0102(CentoralDirectory)出力
                 long centralDirLength = 0L;
-                foreach (PartInfoClass partinfo in partInfoList)
+                long centralDirCount = partInfoList.Count;
+
+                while (partInfoList.Count > 0)
                 {
-                    byte[] pk0102Bytes = partinfo.Pk0102Header.GetBytes();
+                    PartInfoClass partInfo=partInfoList.Dequeue();
+                    byte[] pk0102Bytes = partInfo.Pk0102Header.GetBytes();
 #if NET6_0_OR_GREATER
                     await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0102Bytes), cancelToken).ConfigureAwait(false);
 #else
@@ -1137,16 +1152,27 @@ if (filenameEncoding == null)
                     centralDirLength += pk0102Bytes.LongLength;
                 }
 
+//                foreach (PartInfoClass partinfo in partInfoList)
+//                {
+//                    byte[] pk0102Bytes = partinfo.Pk0102Header.GetBytes();
+//#if NET6_0_OR_GREATER
+//                    await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0102Bytes), cancelToken).ConfigureAwait(false);
+//#else
+//                    await baseStream.WriteAsync(pk0102Bytes, 0, pk0102Bytes.Length, cancelToken).ConfigureAwait(false);
+//#endif
+//                    centralDirLength += pk0102Bytes.LongLength;
+//                }
+
                 // PK0506(EndOfCentralDirectory) 編集
-                ZipHeader.PK0506Info pk0506Header = EditPK0506(centralDirPos, centralDirLength);
+                ZipHeader.PK0506Info pk0506Header = EditPK0506(centralDirPos, centralDirLength, centralDirCount);
 
                 // PK0606及びPK0607の作成判定
                 bool writeZip64EndOfCentralDirectory = false;
-                if (partInfoList.Count > Int16.MaxValue ||
+                if (centralDirCount >= UInt16.MaxValue ||
                     centralDirLength >= UInt32.MaxValue ||
                     centralDirPos >= UInt32.MaxValue)
                 {
-                    // 格納件数0x8000件以上
+                    // 格納件数65535件以上
                     // ディレクトリ長0xFFFFFFFF以上(4G)
                     // 開始位置0xFFFFFFFF以上(4G)
                     writeZip64EndOfCentralDirectory = true;
@@ -1162,8 +1188,8 @@ if (filenameEncoding == null)
                     pk0606.Needver = (UInt16)0x2du;
                     pk0606.Disknum = 0u;
                     pk0606.Startdisknum = 0u;
-                    pk0606.Diskdirentry = (UInt64)partInfoList.Count;
-                    pk0606.Direntry = (UInt64)partInfoList.Count;
+                    pk0606.Diskdirentry = (UInt64)centralDirCount;
+                    pk0606.Direntry = (UInt64)centralDirCount;
                     pk0606.Dirsize = (UInt64)centralDirLength;
                     pk0606.Startpos = (UInt64)centralDirPos;
 
@@ -1226,8 +1252,9 @@ if (filenameEncoding == null)
         /// </summary>
         /// <param name="centralDirPos"></param>
         /// <param name="centralDirLength"></param>
+        /// <param name="centralDirCount"></param>
         /// <returns></returns>
-        private ZipHeader.PK0506Info EditPK0506(long centralDirPos, long centralDirLength)
+        private ZipHeader.PK0506Info EditPK0506(long centralDirPos, long centralDirLength, long centralDirCount)
         {
             ZipHeader.PK0506Info pk0506Header = new ZipHeader.PK0506Info();
             pk0506Header.Signature = SIG_PK0506;
@@ -1235,7 +1262,7 @@ if (filenameEncoding == null)
             pk0506Header.Startdisknum = 0;
 
             // 格納件数編集
-            if (partInfoList.Count >= UInt16.MaxValue)
+            if (centralDirCount >= UInt16.MaxValue)
             {
                 // 格納件数件0xffff以上
                 pk0506Header.Diskdirentry = UInt16.MaxValue;
@@ -1244,8 +1271,8 @@ if (filenameEncoding == null)
             else
             {
                 // 格納件数0xffff件未満
-                pk0506Header.Diskdirentry = (UInt16)partInfoList.Count;
-                pk0506Header.Direntry = (UInt16)partInfoList.Count;
+                pk0506Header.Diskdirentry = (UInt16)centralDirCount;
+                pk0506Header.Direntry = (UInt16)centralDirCount;
             }
 
             // CentralDirectory長編集
@@ -1324,7 +1351,7 @@ if (filenameEncoding == null)
         /// <param name="excludeFileNameList">格納対象外とするファイルの正規表現リスト</param>
         /// <param name="cancelToken"></param>
         /// <remarks></remarks>
-        private Task AddZipDirectoryRecuriveAsync(string baseDir,
+        private Task AddZipDirectoryRecursiveAsync(string baseDir,
                                                   string dirPath,
                                                   List<Regex> excludeFileNameList,
                                                   List<Regex> excludeDirectoryNameList,
@@ -1333,13 +1360,16 @@ if (filenameEncoding == null)
 #if DEBUG
             Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : AddZipDirectoryRecuriveAsync start.");
 #endif
-            Task t = Task.Run(async () =>
+            Task t = Task.Run(() =>
             {
-                await AddZipDirectoryRecuriveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken).ConfigureAwait(false);
-#if DEBUG
-                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : AddZipDirectoryRecuriveAsync async task end.");
-#endif
+                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, dirPath, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
+
+                Task.WaitAll(taskList.ToArray(), cancelToken);
+
             }, cancelToken);
+#if DEBUG
+            Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : AddZipDirectoryRecuriveAsync async task end.");
+#endif
 
 #if DEBUG
             Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : AddZipDirectoryRecuriveAsync end.");
@@ -1357,7 +1387,7 @@ if (filenameEncoding == null)
         /// <param name="abort"></param>
         /// <param name="cancelToken"></param>
         /// <returns></returns>
-        private Task AddZipDirectoryRecuriveMainAsync(string baseDir,
+        private List<Task> AddZipDirectoryRecursiveMainAsync(string baseDir,
                                                       string dirPath,
                                                       List<Regex> excludeFileNameList,
                                                       List<Regex> excludeDirectoryNameList,
@@ -1373,6 +1403,13 @@ if (filenameEncoding == null)
             List<FileInfo> fileList = new List<FileInfo>();
             fileList.AddRange(di.GetFiles());
 
+            // 空ディレクトリの場合はディレクトリのみ格納する
+            if (fileList.Count == 0 && dirList.Count == 0)
+            {
+                AddZipDirectory(baseDir, di.CreationTime, di.LastWriteTime, di.LastAccessTime, abort, cancelToken, this.StoreDirectories);
+                return taskList;
+            }
+
             // 念のためソートする
             dirList.Sort((a, b) =>
             {
@@ -1386,6 +1423,8 @@ if (filenameEncoding == null)
             // ファイルの処理
             foreach (FileInfo targetFile in fileList)
             {
+                cancelToken.ThrowIfCancellationRequested();
+                abort.ThrowIfAbortRequested();
 
                 // 対象外ファイル判定
                 if (excludeFileNameList != null && excludeFileNameList.Count > 0)
@@ -1419,6 +1458,8 @@ if (filenameEncoding == null)
             // ディレクトリの処理
             foreach (DirectoryInfo targetDirectory in dirList)
             {
+                cancelToken.ThrowIfCancellationRequested();
+                abort.ThrowIfAbortRequested();
 
                 // 格納対象外ディレクトリ判定
                 if (excludeDirectoryNameList != null && excludeDirectoryNameList.Count > 0)
@@ -1441,11 +1482,9 @@ if (filenameEncoding == null)
                 // サブディレクトリを再帰的に処理
                 string subDir = $"{baseDir}{targetDirectory.Name}/";
                 //AddZipDirectory(subDir, targetDirectory.CreationTime, targetDirectory.LastWriteTime, targetDirectory.LastAccessTime, abort, cancelToken, this.StoreDirectories);
-                taskList.Add(AddZipDirectoryRecuriveMainAsync(subDir, $"{targetDirectory.FullName}{dirSplitChars[0]}", excludeFileNameList, excludeDirectoryNameList, abort, cancelToken));
+                taskList.AddRange(AddZipDirectoryRecursiveMainAsync(subDir, $"{targetDirectory.FullName}{dirSplitChars[0]}", excludeFileNameList, excludeDirectoryNameList, abort, cancelToken));
             }
-
-            return Task.WhenAll(taskList);
-
+            return taskList;
         }
 
         /// <summary>
@@ -1568,7 +1607,7 @@ if (filenameEncoding == null)
         /// <param name="abort"></param>
         /// <param name="cancelToken"></param>
         /// <remarks></remarks>
-        private Task AddZipFileAsync(string fileName,
+        private async Task AddZipFileAsync(string fileName,
                                      FileInfo fi,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
@@ -1586,14 +1625,11 @@ if (filenameEncoding == null)
 
             PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
-            return Task.Run(async () =>
+            //using(FileStream fs = fi.OpenRead())
+            using (FileStream fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             {
-                //using(FileStream fs = fi.OpenRead())
-                using (FileStream fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                {
-                    await this.AddZipFileAsyncSemaphore(partInfo, fs, abort, cancelToken).ConfigureAwait(false);
-                }
-            }, cancelToken);
+                await this.AddZipFileAsyncSemaphore(partInfo, fs, abort, cancelToken).ConfigureAwait(false);
+            }
 
         }
 
@@ -1610,7 +1646,7 @@ if (filenameEncoding == null)
         /// <param name="abort"></param>
         /// <param name="cancelToken"></param>
         /// <remarks></remarks>
-        private Task AddZipFileAsync(string fileName,
+        private async Task AddZipFileAsync(string fileName,
                                      byte[] byteData,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
@@ -1622,13 +1658,10 @@ if (filenameEncoding == null)
         {
             PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
-            return Task.Run(async () =>
+            using (MemoryStream ms = new MemoryStream(byteData, false))
             {
-                using (MemoryStream ms = new MemoryStream(byteData, false))
-                {
-                    await this.AddZipFileAsyncSemaphore(partInfo, ms, abort, cancelToken).ConfigureAwait(false);
-                }
-            }, cancelToken);
+                await this.AddZipFileAsyncSemaphore(partInfo, ms, abort, cancelToken).ConfigureAwait(false);
+            }
 
         }
 
@@ -1645,7 +1678,7 @@ if (filenameEncoding == null)
         /// <param name="abort"></param>
         /// <param name="cancelToken"></param>
         /// <remarks></remarks>
-        private Task AddZipFileAsync(string fileName,
+        private async Task AddZipFileAsync(string fileName,
                                      Stream fileStream,
                                      COMPRESSION_OPTION compressionOption,
                                      ENCRYPTION_OPTION encryptionOption,
@@ -1658,10 +1691,7 @@ if (filenameEncoding == null)
 
             PartInfoClass partInfo = EditPartInfo(fileName, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, abort, cancelToken);
 
-            return Task.Run(async () =>
-            {
-                await this.AddZipFileAsyncSemaphore(partInfo, fileStream, abort, cancelToken).ConfigureAwait(false);
-            }, cancelToken);
+            await this.AddZipFileAsyncSemaphore(partInfo, fileStream, abort, cancelToken).ConfigureAwait(false);
 
         }
 
@@ -1788,7 +1818,7 @@ if (filenameEncoding == null)
                 abort.ThrowIfAbortRequested();
 
                 // 処理中リストに追加
-                inprocFile.TryAdd(partInfo, false);
+                processingFiles.TryAdd(partInfo, false);
 
 #if DEBUG
                 if (Path.GetFileName(partInfo.FullName) == "throwexception.txt")
@@ -1809,7 +1839,7 @@ if (filenameEncoding == null)
             {
 
                 // 処理中リストから削除
-                inprocFile.TryRemove(partInfo, out bool dmy);
+                processingFiles.TryRemove(partInfo, out bool dmy);
 
                 // セマフォリリース
                 int resCount = this.addZipSemaphore.Release();
@@ -2162,7 +2192,7 @@ if (filenameEncoding == null)
             }
             if (partInfo.WriteDataDescriptor)
             {
-                opt = (ushort)(opt | (ushort)HeaderGeneralFlag.DESCRIPTION_EXISTS);
+                opt = (ushort)(opt | (ushort)HeaderGeneralFlag.DESCRIPTION_PRESENT);
             }
             if(partInfo.CompressionOption == COMPRESSION_OPTION.DEFLATE)
             {
@@ -2463,6 +2493,7 @@ if (filenameEncoding == null)
                         }
 
                         partInfoList.Enqueue(partInfo);
+                        this.ZipFileCount++;
 
                     }
                     catch

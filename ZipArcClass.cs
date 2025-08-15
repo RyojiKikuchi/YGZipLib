@@ -309,7 +309,7 @@ if (filenameEncoding == null)
         /// </summary>
         public bool StoreDirectories { get; set; } = true;
 
-        private bool _StoreInOrderAdded = false;
+        private bool _StoreInOrderAdded = true;
 
         /// <summary>
         /// 書庫に格納するファイル・ディレクトリを依頼順に格納する。初回のAdd系メソッド呼び出し前に設定する必要がある。
@@ -327,7 +327,7 @@ if (filenameEncoding == null)
             }
             set
             {
-                if (addQueueCount > 0)
+                if (addQueueId > 1)
                 {
                     // 既にAddQueueが呼び出されている場合は変更不可
                     return;
@@ -648,7 +648,7 @@ if (filenameEncoding == null)
                 else
                 {
                     // ディレクトリを作成して格納
-                    string zipBaseDir = dirReplaceRegex.Replace(baseDir, "");
+                    string zipBaseDir = dirReplaceRegex.Replace(baseDir, string.Empty);
                     await AddZipDirectoryRecursiveAsync($"{zipBaseDir}/", di, excludeFileNameList, excludeDirectoryNameList, cancelToken).ConfigureAwait(false);
                 }
             }
@@ -1484,6 +1484,10 @@ if (filenameEncoding == null)
         /// <remarks>正規化後の書庫ルートからの親ディレクトリ</remarks>
         private string AddZipDirectory(string directoryName, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime lastAccessTimeStamp, TaskAbort abort, CancellationToken cancelToken, bool store = true)
         {
+
+            // 引数チェック
+            directoryName = SanitizeEntryName(directoryName);
+
             lock (dirDicOrg)
             {
                 // 既に処理済みなら格納ディレクトリ名の返却のみ
@@ -1538,6 +1542,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         private void AddZipDirectorySub(string directoryName, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime lastAccessTimeStamp, TaskAbort abort, CancellationToken cancelToken)
         {
+
             lock (dirDic)
             {
                 // 既に追加済なら終了する
@@ -1705,6 +1710,10 @@ if (filenameEncoding == null)
                                            TaskAbort abort, 
                                            CancellationToken cancelToken)
         {
+
+            // ファイル名のチェック
+            fileName = SanitizeEntryName(fileName);
+
             // ディレクトリとファイル名の分離
             string arcFilePath = Path.GetDirectoryName(fileName);
             string arcFileName = Path.GetFileName(fileName);
@@ -1759,6 +1768,39 @@ if (filenameEncoding == null)
                 }
             }
             return partInfo;
+        }
+
+        /// <summary>
+        /// ZIPエントリ名のサニタイズ
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private string SanitizeEntryName(string name)
+        {
+
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
+            // 先頭の / or \ を除去
+            string work = dirReplaceRegex.Replace(name.Trim(), string.Empty)
+                                         .Replace('\\', '/');
+
+            // ドライブ指定（例: C:）や絶対パスは禁止
+            if (Path.IsPathRooted(work) || (work.Length >= 2 && char.IsLetter(work[0]) && work[1] == ':'))
+                throw new ArgumentException("Absolute or drive-rooted paths are not allowed in zip entry names.", nameof(name));
+
+            // . と .. を正規化
+            var parts = work.Split(dirSplitChars, StringSplitOptions.RemoveEmptyEntries);
+            var stack = new Stack<string>();
+            foreach (var p in parts)
+            {
+                if (p == "." || p == "..")
+                {
+                    if (stack.Count == 0) throw new ArgumentException("Parent directory traversal is not allowed in zip entry names.", nameof(name));
+                    stack.Pop();
+                    continue;
+                }
+                stack.Push(p);
+            }
+            return string.Join("/", stack.Reverse());
         }
 
         private async Task AddZipFileAsyncSemaphore(PartInfoClass partInfo, 
@@ -2322,8 +2364,8 @@ if (filenameEncoding == null)
         /// <summary>キューに依頼順に登録するためのDictionary</summary>
         private readonly Dictionary<int, AsyncQueue> partInfoDic = new Dictionary<int, AsyncQueue>();
         private int partInfoDicCount = 0;
-        /// <summary>キューへの追加回数</summary>
-        private int addQueueCount = 0;
+        /// <summary>PartInfoClassのID順にリストに追加するためのID。partInfo.Idは1から始まる</summary>
+        private int addQueueId = 1;
 
         /// <summary>
         /// ベースストリームへの書き出しキュー追加
@@ -2342,11 +2384,11 @@ if (filenameEncoding == null)
                     // 辞書へ追加
                     partInfoDic.Add(partInfo.Id, new AsyncQueue(partInfo,stream));
                     // 依頼順にキューに追加
-                    while (partInfoDic.ContainsKey(addQueueCount))
+                    while (partInfoDic.ContainsKey(addQueueId))
                     {
-                        procQueueList.Enqueue(partInfoDic[addQueueCount]);
-                        partInfoDic.Remove(addQueueCount);
-                        addQueueCount++;
+                        procQueueList.Enqueue(partInfoDic[addQueueId]);
+                        partInfoDic.Remove(addQueueId);
+                        addQueueId++;
                         isAddQueue = true;
                     }
                     partInfoDicCount = partInfoDic.Count;

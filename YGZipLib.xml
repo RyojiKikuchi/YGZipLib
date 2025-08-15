@@ -495,6 +495,21 @@
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskThread">
             <summary>マスク作成タスク</summary>
         </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector512Supported">
+            <summary>Vector512サポート判定</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector256Supported">
+            <summary>Vector256サポート判定</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector128Supported">
+            <summary>Vector128サポート判定</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.avx2Supported">
+            <summary>AVX2サポート判定</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.advSimdSupported">
+            <summary>AdvSimdサポート判定</summary>
+        </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.#ctor(System.IO.Stream,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],YGZipLib.Streams.ZipAesCryptStream.StreamMode,System.Int64)">
             <summary>
             コンストラクタ
@@ -677,14 +692,6 @@
             次のマスク値を取得
             </summary>
             <remarks></remarks>
-        </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArray(System.Byte[],System.Int32,System.Int32)">
-            <summary>
-            入出力バッファとマスク配列をxorして暗号化／復号化を行う
-            </summary>
-            <param name="array">入出力バッファ</param>
-            <param name="offset">オフセット</param>
-            <param name="count">カウント</param>
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.CheckHash">
             <summary>
@@ -2143,6 +2150,13 @@
             <returns></returns>
             <remarks></remarks>
         </member>
+        <member name="M:YGZipLib.ZipArcClass.SanitizeEntryName(System.String)">
+            <summary>
+            ZIPエントリ名のサニタイズ
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
         <member name="M:YGZipLib.ZipArcClass.AddZipDirectorySub(YGZipLib.Common.PartInfoClass,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
             <summary>
             ZIP書庫の個別ディレクトリ作成サブ
@@ -2198,8 +2212,8 @@
         <member name="F:YGZipLib.ZipArcClass.partInfoDic">
             <summary>キューに依頼順に登録するためのDictionary</summary>
         </member>
-        <member name="F:YGZipLib.ZipArcClass.addQueueCount">
-            <summary>キューへの追加回数</summary>
+        <member name="F:YGZipLib.ZipArcClass.addQueueId">
+            <summary>PartInfoClassのID順にリストに追加するためのID。partInfo.Idは1から始まる</summary>
         </member>
         <member name="M:YGZipLib.ZipArcClass.AddQueue(YGZipLib.Common.PartInfoClass,System.IO.Stream,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
             <summary>

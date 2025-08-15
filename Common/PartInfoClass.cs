@@ -13,10 +13,8 @@ namespace YGMailLib.Zip.Common
     internal class PartInfoClass
 	{
 
-		private int _Id = 0;
-
         /// <summary>ID</summary>
-        public int Id { get { return _Id; } set { _Id = value - 1; } }
+        public int Id { get; set; }
 
         /// <summary>ファイル名</summary>
         public byte[] FileName { get; set; } = null;

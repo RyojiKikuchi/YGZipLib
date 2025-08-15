@@ -767,7 +767,7 @@ namespace YGMailLib.Zip
 			{
 				StringBuilder cdInfo = new StringBuilder();
 				cdInfo.AppendLine($"CentralDirectoryInfo");
-				if(ExtraFields.TryGetValue(ZipHeader.ExtraDataId.UnicodePath, out byte[] value))
+				if (ExtraFields.TryGetValue(ZipHeader.ExtraDataId.UnicodePath, out byte[] _))
 				{
                     cdInfo.AppendLine($" FullName:{ShareMethodClass.EncodingGetString(centralDirectory.filenameb, ZipFileNameEncoding)}");
                     cdInfo.AppendLine($" FullName(Utf8):{FullName}");

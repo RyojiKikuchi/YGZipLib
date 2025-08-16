@@ -510,15 +510,6 @@
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskThread">
             <summary>マスク作成タスク</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector512Supported">
-            <summary>Vector512サポート判定</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector256Supported">
-            <summary>Vector256サポート判定</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector128Supported">
-            <summary>Vector128サポート判定</summary>
-        </member>
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.avx2Supported">
             <summary>AVX2サポート判定</summary>
         </member>

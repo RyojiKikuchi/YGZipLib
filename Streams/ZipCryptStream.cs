@@ -31,6 +31,15 @@ namespace YGMailLib.Zip.Streams
 
         #endregion
 
+        #region const
+
+        private const uint KEY0_INITIAL = 0x12345678u;
+        private const uint KEY1_INITIAL = 0x23456789u;
+        private const uint KEY2_INITIAL = 0x34567890u;
+        private const ulong KEY_UPDATE_FACTOR = 134775813uL;
+
+        #endregion
+
         #region struct
 
         private unsafe struct FixedBuffer
@@ -67,11 +76,12 @@ namespace YGMailLib.Zip.Streams
             {
                 fixed (UInt32* crcTable = fixedBuf.crcTable)
                 {
-                    ShareMethodClass.SetCrcTable(crcTable);
+                    ShareMethodClass.CopyCrcTable(crcTable);
                 }
-                fixedBuf.key[0] = 0x12345678u;
-                fixedBuf.key[1] = 0x23456789u;
-                fixedBuf.key[2] = 0x34567890u;
+				//
+                fixedBuf.key[0] = KEY0_INITIAL;
+                fixedBuf.key[1] = KEY1_INITIAL;
+                fixedBuf.key[2] = KEY2_INITIAL;
             }
 
             if (this.streamMode == StreamMode.ENCRYPT)
@@ -135,13 +145,15 @@ namespace YGMailLib.Zip.Streams
 		/// <remarks></remarks>
 		private void UpdateKeys(byte n)
 		{
+
 			unsafe
 			{
-                fixedBuf.key[0] = fixedBuf.crcTable[(int)((fixedBuf.key[0] ^ n) & 0xFFu)] ^ (fixedBuf.key[0] >> 8);
-                fixedBuf.key[1] = (uint)((((((ulong)fixedBuf.key[0] & 0xFFuL) + fixedBuf.key[1]) & 0xFFFFFFFFu) * 134775813uL + 1uL) & 0xFFFFFFFFu);
-                fixedBuf.key[2] = fixedBuf.crcTable[(int)((fixedBuf.key[2] ^ (fixedBuf.key[1] >> 24)) & 0xFFu)] ^ (fixedBuf.key[2] >> 8);
-            }
-        }
+				fixedBuf.key[0] = fixedBuf.crcTable[(int)((fixedBuf.key[0] ^ n) & 0xFFu)] ^ (fixedBuf.key[0] >> 8);
+				fixedBuf.key[1] = (uint)((((((ulong)fixedBuf.key[0] & 0xFFuL) + fixedBuf.key[1]) & 0xFFFFFFFFu) * KEY_UPDATE_FACTOR + 1uL) & 0xFFFFFFFFu);
+				fixedBuf.key[2] = fixedBuf.crcTable[(int)((fixedBuf.key[2] ^ (fixedBuf.key[1] >> 24)) & 0xFFu)] ^ (fixedBuf.key[2] >> 8);
+			}
+
+		}
 
 		/// <summary>
 		/// ZIP暗号化初期化(復号化)
@@ -275,14 +287,16 @@ namespace YGMailLib.Zip.Streams
                         uint* k0 = &k[0]; uint* k1 = &k[1]; uint* k2 = &k[2];
                         for (int i = 0; i < count; i++)
                         {
-                            // 暗号化(処理速度改善のためZEncodeとUpdateKeysを展開)
-                            temp = (*k2 & 0xFFFFu) | 2u;
-                            *k0 = fixedBuf.crcTable[(*k0 ^ *bp) & 0xFF] ^ (*k0 >> 8);
-                            *k1 = (uint)((((((ulong)*k0 & 0xFFuL) + *k1) & 0xFFFFFFFFu) * 134775813 + 1) & 0xFFFFFFFFu);
-                            *k2 = fixedBuf.crcTable[(*k2 ^ (*k1 >> 24)) & 0xFF] ^ (*k2 >> 8);
-                            *bp = (byte)((byte)((temp * (temp ^ 1) >> 8) & 0xFFu) ^ *bp);
-                            bp++;
-                        }
+
+							// 暗号化(処理速度改善のためZEncodeとUpdateKeysを展開)
+							temp = (*k2 & 0xFFFFu) | 2u;
+							*k0 = fixedBuf.crcTable[(*k0 ^ *bp) & 0xFF] ^ (*k0 >> 8);
+							*k1 = (uint)((((((ulong)*k0 & 0xFFuL) + *k1) & 0xFFFFFFFFu) * KEY_UPDATE_FACTOR + 1) & 0xFFFFFFFFu);
+							*k2 = fixedBuf.crcTable[(*k2 ^ (*k1 >> 24)) & 0xFF] ^ (*k2 >> 8);
+							*bp = (byte)((byte)((temp * (temp ^ 1) >> 8) & 0xFFu) ^ *bp);
+							bp++;
+
+						}
                     }
                 }
             }
@@ -310,14 +324,16 @@ namespace YGMailLib.Zip.Streams
                         uint* k0 = &k[0]; uint* k1 = &k[1]; uint* k2 = &k[2];
                         for (int i = 0; i < readCount; i++)
                         {
-                            // 復号化(処理速度改善のためZDecodeとUpdateKeysを展開)
-                            temp = (*k2 & 0xFFFFu) | 2u;
-                            *bp = (byte)((byte)((temp * (temp ^ 1) >> 8) & 0xFFu) ^ *bp);
-                            *k0 = fixedBuf.crcTable[(*k0 ^ *bp) & 0xFF] ^ (*k0 >> 8);
-                            *k1 = (uint)((((((ulong)*k0 & 0xFFuL) + *k1) & 0xFFFFFFFFu) * 134775813 + 1) & 0xFFFFFFFFu);
-                            *k2 = fixedBuf.crcTable[(*k2 ^ (*k1 >> 24)) & 0xFF] ^ (*k2 >> 8);
-                            bp++;
-                        }
+
+							// 復号化(処理速度改善のためZDecodeとUpdateKeysを展開)
+							temp = (*k2 & 0xFFFFu) | 2u;
+							*bp = (byte)((byte)((temp * (temp ^ 1) >> 8) & 0xFFu) ^ *bp);
+							*k0 = fixedBuf.crcTable[(*k0 ^ *bp) & 0xFF] ^ (*k0 >> 8);
+							*k1 = (uint)((((((ulong)*k0 & 0xFFuL) + *k1) & 0xFFFFFFFFu) * KEY_UPDATE_FACTOR + 1) & 0xFFFFFFFFu);
+							*k2 = fixedBuf.crcTable[(*k2 ^ (*k1 >> 24)) & 0xFF] ^ (*k2 >> 8);
+							bp++;
+
+						}
                     }
                 }
             }

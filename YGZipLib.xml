@@ -124,9 +124,9 @@
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:YGZipLib.Common.ShareMethodClass.SetCrcTable(System.UInt32*)">
+        <member name="M:YGZipLib.Common.ShareMethodClass.CopyCrcTable(System.UInt32*)">
             <summary>
-            CRCテーブル設定
+            CRCテーブルコピー
             </summary>
             <param name="destCrc"></param>
         </member>
@@ -155,6 +155,21 @@
             <summary>
             US-ASCII(codepage=20127)
             </summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGetBytes(System.String,System.Text.Encoding)">
+            <summary>StringをByte配列に変換する(スレッドセーフ)</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGetString(System.Byte[],System.Text.Encoding)">
+            <summary>Byte配列をStringに変換する(スレッドセーフ)</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGet(System.Text.Encoding,System.String@,System.Byte[]@)">
+            <summary>
+            EncodingのGetString,GetBytesをスレッドセーフにするためのメソッド
+            </summary>
+            <param name="enc"></param>
+            <param name="text"></param>
+            <param name="byteArray"></param>
+            <remarks><see cref="M:YGZipLib.Common.ShareMethodClass.EncodingGetBytes(System.String,System.Text.Encoding)"/>または<see cref="M:YGZipLib.Common.ShareMethodClass.EncodingGetString(System.Byte[],System.Text.Encoding)"/>から呼び出される。</remarks>
         </member>
         <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayToHex(System.Byte[])">
             <summary>
@@ -553,20 +568,20 @@
             <param name="sender"></param>
             <param name="e"></param>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.ReturnThread(YGZipLib.Streams.ZipAesCryptStream.AesMaskThread)">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.ReturnThread(YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator)">
             <summary>
             スレッド返却
             </summary>
             <param name="thread"></param>
             <exception cref="T:System.ArgumentOutOfRangeException"></exception>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.RemoveThread(YGZipLib.Streams.ZipAesCryptStream.AesMaskThread)">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.RemoveThread(YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator)">
             <summary>
             スレッド削除
             </summary>
             <param name="thread"></param>
             <remarks>
-            <seealso cref="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.CreateNextMask(System.Object)"/>の最後のfinally句から呼ばれる
+            <seealso cref="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.CreateNextMask(System.Object)"/>の最後のfinally句から呼ばれる
             </remarks>
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.DisposeUnuseThread(System.Int64)">
@@ -575,104 +590,104 @@
             </summary>
             <param name="milliseconds"></param>
         </member>
-        <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread">
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator">
             <summary>
-            マスク配列作成処理クラス
+            マスク配列作成
             </summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.isCompleted">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.isCompleted">
             <summary>処理終了</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.isError">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.isError">
             <summary>エラー発生</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskArray">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskArray">
             <summary>マスク配列</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskSelecter">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskSelecter">
             <summary>暗号化用マスクワークセレクター</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskCounter">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskCounter">
             <summary>暗号化用マスクカウンター</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.plainArray">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.plainArray">
             <summary>暗号化用マスク作成用配列</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskArray0">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskArray0">
             <summary>暗号化用マスクワーク1</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskArray1">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskArray1">
             <summary>暗号化用マスクワーク2</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.aesCrypt">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.aesCrypt">
             <summary>AES</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.threadNo">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.threadNo">
             <summary>スレッド番号</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.threadNoLocker">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.threadNoLocker">
             <summary>スレッド番号ロック</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.aesTrans">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.aesTrans">
             <summary>AES暗号化/復号化</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.exception">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.exception">
             <summary>エラー情報</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.successEvent">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.successEvent">
             <summary>処理完了イベント</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.executeEvent">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.executeEvent">
             <summary>実行待ちイベント</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.cancelSource">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.cancelSource">
             <summary>マスク作成タスクキャンセル用</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.cancelToken">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.cancelToken">
             <summary>マスク作成タスクキャンセル用</summary>
         </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.createMaskThread">
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.createMaskThread">
             <summary>マスク作成スレッド</summary>
         </member>
-        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.LastUse">
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.LastUse">
             <summary>最後に使用されたタイムスタンプ</summary>
         </member>
-        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.InUse">
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.InUse">
             <summary>使用中フラグ</summary>
         </member>
-        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.IsUnUsed">
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.IsUnUsed">
             <summary>未使用判定</summary>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.#cctor">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.#cctor">
             <summary>
             コンストラクタ
             </summary>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.#ctor">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.#ctor">
             <summary>
             コンストラクタ
             </summary>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.SetAesKey(System.Byte[],System.Byte[])">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.SetAesKey(System.Byte[],System.Byte[])">
             <summary>
             AESキーをセットして内部状態をリセットする
             </summary>
             <param name="aesKey"></param>
             <param name="aesIv"></param>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.Start">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.Start">
             <summary>
             マスク作成処理起動
             </summary>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.GetMaskArray">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.GetMaskArray">
             <summary>
             マスク配列取得
             </summary>
             <returns></returns>
             <exception cref="T:System.InvalidOperationException"></exception>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.CreateNextMask(System.Object)">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.CreateNextMask(System.Object)">
             <summary>
             次のマスク値を作成
             </summary>
@@ -692,6 +707,27 @@
             次のマスク値を取得
             </summary>
             <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorMethodDelegate">
+            <summary>
+            AESマスク処理デリゲート
+            </summary>
+            <param name="alp">マスク対象配列アクセス用ポインタ</param>
+            <param name="mlp">マスク用配列アクセス用ポインタ</param>
+            <param name="count">マスクバイト数</param>
+            <param name="xorCount">xor処理済カウンタ</param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector512(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector512でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector256(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector256でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector128(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector128でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorNoSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Longでマスク処理</summary>
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.CheckHash">
             <summary>

@@ -32,7 +32,7 @@ namespace YGMailLib.Zip.Streams
     /// ZIP AES暗号化クラス
     /// </summary>
     /// <remarks></remarks>
-    internal class ZipAesCryptStream : Stream, IDisposable
+    internal unsafe class ZipAesCryptStream : Stream, IDisposable
     {
 
         #region "ENUM"
@@ -90,7 +90,7 @@ namespace YGMailLib.Zip.Streams
         //private readonly int maskSize = (int)MASK_SIZE;
 
         /// <summary>マスク作成タスク</summary>
-        private readonly AesMaskThread aesMaskThread = null;
+        private readonly AesMaskGenerator aesMaskThread = null;
 
 
 #if NET7_0_OR_GREATER
@@ -120,7 +120,7 @@ namespace YGMailLib.Zip.Streams
         private readonly Stopwatch readWriteStp = Stopwatch.StartNew();
 #endif
 
-#endregion
+        #endregion
 
         #region "コンストラクタ"
 
@@ -135,9 +135,9 @@ namespace YGMailLib.Zip.Streams
         /// <remarks></remarks>
         public ZipAesCryptStream(Stream baseStream, ZipArcClass.ENCRYPTION_OPTION aesMode, byte[] password, StreamMode streamMode, long length)
         {
+
 #if DEBUG
             Stopwatch stp = Stopwatch.StartNew();
-
 #if NET8_0_OR_GREATER
             Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream: Constructor length={length}, vector512Supported={vector512Supported}, vector256Supported={vector256Supported}, vector128Supported={vector128Supported}");
 #elif NET5_0_OR_GREATER
@@ -145,7 +145,6 @@ namespace YGMailLib.Zip.Streams
 #else
             Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream: Constructor length={length}");
 #endif
-
 #endif
 
             // マスク配列作成スレッド取得
@@ -182,7 +181,12 @@ namespace YGMailLib.Zip.Streams
                     }
 
                     // キー初期化
-                    InitKey(aesMode, password, aesSalt);
+                    byte[] passwordValidationDataInit = InitKey(aesMode, password, aesSalt);
+
+                    // saltとパスワード検証値をストリームに書き込む
+                    writeStream.Write(aesSalt, 0, aesSalt.Length);
+                    writeStream.Write(passwordValidationDataInit, 0, passwordValidationDataInit.Length);
+
                 }
                 else
                 {
@@ -220,49 +224,15 @@ namespace YGMailLib.Zip.Streams
                 throw;
             }
 
-#if NET8_0_OR_GREATER
-
-            if (vector512Supported)
-            {
-                maskByteArrayMethod = MaskByteArrayVector512;
-            }else if (vector256Supported)
-            {
-                maskByteArrayMethod = MaskByteArrayVector256;
-            }
-            else if (vector128Supported)
-            {
-                maskByteArrayMethod = MaskByteArrayVector128;
-            }
-            else { 
-                maskByteArrayMethod = MaskByteArrayNoSimd;
-            }
-
-#elif NET5_0_OR_GREATER
-
-            if (avx2Supported)
-            {
-                maskByteArrayMethod = MaskByteArrayAvx2;
-            }
-            else if (advSimdSupported)
-            {
-                maskByteArrayMethod = MaskByteArrayAdvSimd;
-            }
-            else
-            {
-                maskByteArrayMethod = MaskByteArrayNoSimd;
-            }
-#else
-
-            maskByteArrayMethod = MaskByteArrayNoSimd;
-
-#endif
+            // マスク配列処理メソッド設定
+            SetMaskByteArrayXorMethod();
 
 #if DEBUG
             constructorExecTime = stp.Elapsed.TotalMilliseconds;
 #endif
         }
 
-#endregion
+        #endregion
 
         #region AesMaskThreadPool
 
@@ -273,7 +243,7 @@ namespace YGMailLib.Zip.Streams
         {
 
             /// <summary>マスク配列作成処理格納リスト</summary>
-            private static readonly List<AesMaskThread> threadList = new List<AesMaskThread>();
+            private static readonly List<AesMaskGenerator> threadList = new List<AesMaskGenerator>();
 
             /// <summary>マスク配列作成処理格納リストロック</summary>
             private static readonly object threadListLocker = new object();
@@ -296,20 +266,20 @@ namespace YGMailLib.Zip.Streams
             /// スレッド取得
             /// </summary>
             /// <returns></returns>
-            public static AesMaskThread GetThread()
+            public static AesMaskGenerator GetThread()
             {
 
-                AesMaskThread thread;
+                AesMaskGenerator thread;
                 lock (threadListLocker)
                 {
 
                     // 未使用スレッド取得
                     thread = threadList.Find(t => t.IsUnUsed == true);
-                    
+
                     // 未使用スレッドが存在しない場合新規スレッドを作成
                     if (thread == null)
                     {
-                        thread = new AesMaskThread();
+                        thread = new AesMaskGenerator();
                         threadList.Add(thread);
                     }
 
@@ -350,12 +320,12 @@ namespace YGMailLib.Zip.Streams
             /// </summary>
             /// <param name="thread"></param>
             /// <exception cref="ArgumentOutOfRangeException"></exception>
-            public static void ReturnThread(AesMaskThread thread)
+            public static void ReturnThread(AesMaskGenerator thread)
             {
                 lock (threadListLocker)
                 {
                     // リストチェック
-                    if (threadList.Find(t => t.Equals(thread)) == null) 
+                    if (threadList.Find(t => t.Equals(thread)) == null)
                         throw new ArgumentOutOfRangeException(nameof(thread));
 
                     // 使用中フラグOFF
@@ -373,9 +343,9 @@ namespace YGMailLib.Zip.Streams
             /// </summary>
             /// <param name="thread"></param>
             /// <remarks>
-            /// <seealso cref="AesMaskThread.CreateNextMask(object)"/>の最後のfinally句から呼ばれる
+            /// <seealso cref="AesMaskGenerator.CreateNextMask(object)"/>の最後のfinally句から呼ばれる
             /// </remarks>
-            public static void RemoveThread(AesMaskThread thread)
+            public static void RemoveThread(AesMaskGenerator thread)
             {
                 lock (threadListLocker)
                 {
@@ -401,7 +371,7 @@ namespace YGMailLib.Zip.Streams
             private static void DisposeUnuseThread(long milliseconds)
             {
                 // 未使用スレッドのリスト
-                List<AesMaskThread> disposeList = new List<AesMaskThread>();
+                List<AesMaskGenerator> disposeList = new List<AesMaskGenerator>();
 #if DEBUG
                 int beforeCount;
                 lock (threadListLocker)
@@ -434,7 +404,7 @@ namespace YGMailLib.Zip.Streams
 #endif
                     });
                 }
-                
+
                 // 未使用スレッド解放
                 disposeList.ForEach(t => {
                     t.Dispose();
@@ -445,7 +415,7 @@ namespace YGMailLib.Zip.Streams
                 {
                     int afterCount = threadList.Count;
                     Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(DisposeUnuseThread): BeforeCount={beforeCount}, AfterCount={afterCount}");
-               
+
                 }
 #endif
 
@@ -454,12 +424,12 @@ namespace YGMailLib.Zip.Streams
 
         #endregion
 
-        #region "AesMaskThread"
+        #region "AesMaskGenerator"
 
         /// <summary>
-        /// マスク配列作成処理クラス
+        /// マスク配列作成
         /// </summary>
-        private class AesMaskThread : IDisposable
+        private class AesMaskGenerator : IDisposable
         {
 
             /// <summary>処理終了</summary>
@@ -538,8 +508,8 @@ namespace YGMailLib.Zip.Streams
 
             public string Name => createMaskThread.Name;
 
-            public System.Threading.ThreadState ThreadState=> createMaskThread.ThreadState;
-            
+            public System.Threading.ThreadState ThreadState => createMaskThread.ThreadState;
+
 #if DEBUG
             public double GetNextMaskTime { get; set; } = 0;
 #endif
@@ -547,7 +517,7 @@ namespace YGMailLib.Zip.Streams
             /// <summary>
             /// コンストラクタ
             /// </summary>
-            static AesMaskThread()
+            static AesMaskGenerator()
             {
                 aesCrypt = System.Security.Cryptography.Aes.Create();
                 aesCrypt.Mode = CipherMode.ECB;
@@ -557,7 +527,7 @@ namespace YGMailLib.Zip.Streams
             /// <summary>
             /// コンストラクタ
             /// </summary>
-            public AesMaskThread()
+            public AesMaskGenerator()
             {
                 cancelToken = cancelSource.Token;
                 createMaskThread = new Thread(CreateNextMask);
@@ -825,9 +795,9 @@ namespace YGMailLib.Zip.Streams
             }
         }
 
-#endregion
+        #endregion
 
-#endregion
+        #endregion
 
         #region "Private"
 
@@ -874,11 +844,7 @@ namespace YGMailLib.Zip.Streams
 
             // HMACSHA1
             calcHmac = new HMACSHA1(hmacKey);
-            if (streamMode == StreamMode.ENCRYPT)
-            {
-                writeStream.Write(aesSalt, 0, aesSalt.Length);
-                writeStream.Write(passwordValidationData, 0, passwordValidationData.Length);
-            }
+
             return passwordValidationData;
         }
 
@@ -905,285 +871,155 @@ namespace YGMailLib.Zip.Streams
 
         #region "MaskByteArray"
 
-        private unsafe delegate void MaskByteArrayDelegate(byte[] array, int offset, int count);
-        private readonly MaskByteArrayDelegate maskByteArrayMethod = null;
+        /// <summary>
+        /// AESマスク処理デリゲート
+        /// </summary>
+        /// <param name="alp">マスク対象配列アクセス用ポインタ</param>
+        /// <param name="mlp">マスク用配列アクセス用ポインタ</param>
+        /// <param name="count">マスクバイト数</param>
+        /// <param name="xorCount">xor処理済カウンタ</param>
+        private unsafe delegate void MaskByteArrayXorMethodDelegate(ref long* alp, ref long* mlp, int count, ref int xorCount);
 
-#if NET7_0_OR_GREATER
+        private unsafe MaskByteArrayXorMethodDelegate maskByteArrayXorMethod = null;
 
-        private unsafe void MaskByteArrayVector512(byte[] array, int offset, int count)
+        /// <summary>
+        /// マスク配列処理メソッド設定
+        /// </summary>
+        private void SetMaskByteArrayXorMethod()
         {
-            int xorCount = 0;
-            int iCount = 0;
-            int iMaskSize = 0;
-            UIntPtr iPtr;
 
-            fixed (byte* ap = array)
+#if NET8_0_OR_GREATER
+
+            if (vector512Supported)
             {
-                long* alp = (long*)(ap + offset);
-
-                while (xorCount < count)
-                {   
-                    // 次のマスク配列取得
-                    if (aesMaskPosition == MASK_SIZE)
-                    {
-                        GetNextMask();
-                    }
-
-                    fixed (byte* mp = aesMaskBytes)
-                    {
-                        long* mlp = (long*)(mp + aesMaskPosition);
-
-                        // 64byte単位にxor
-                        iCount = count - 64;
-                        iMaskSize = MASK_SIZE - 64;
-                        for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 64, aesMaskPosition += 64, iPtr += 8)
-                        {
-                            Vector512.StoreUnsafe(Vector512.Xor(Vector512.LoadUnsafe(ref *alp, iPtr), Vector512.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
-                        }
-                        alp += iPtr;
-                        mlp += iPtr;
-
-                        // 8byte単位にxor
-                        iCount = count - 8;
-                        iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-                        {
-                            *alp++ ^= *mlp++;
-                        }
-
-                        // 1byte単位にxor
-                        byte* abp = (byte*)alp;
-                        byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
-                        {
-                            *abp = (byte)(*abp++ ^ *mbp++);
-                        }
-                        alp = (long*)abp;
-                    }
-                }
+                maskByteArrayXorMethod = MaskByteArrayXorVector512;
             }
-        }
-
-        private unsafe void MaskByteArrayVector256(byte[] array, int offset, int count)
-        {
-            int xorCount = 0;
-            int iCount = 0;
-            int iMaskSize = 0;
-            UIntPtr iPtr;
-
-            fixed (byte* ap = array)
+            else if (vector256Supported)
             {
-                long* alp = (long*)(ap + offset);
-
-                while (xorCount < count)
-                {
-                    // 次のマスク配列取得
-                    if (aesMaskPosition == MASK_SIZE)
-                    {
-                        GetNextMask();
-                    }
-
-                    fixed (byte* mp = aesMaskBytes)
-                    {
-                        long* mlp = (long*)(mp + aesMaskPosition);
-
-                        // 32byte単位にxor
-                        iCount = count - 32;
-                        iMaskSize = MASK_SIZE - 32;
-                        for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 32, aesMaskPosition += 32, iPtr += 4)
-                        {
-                            Vector256.StoreUnsafe(Vector256.Xor(Vector256.LoadUnsafe(ref *alp, iPtr), Vector256.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
-                        }
-                        alp += iPtr;
-                        mlp += iPtr;
-
-                        // 8byte単位にxor
-                        iCount = count - 8;
-                        iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-                        {
-                            *alp++ ^= *mlp++;
-                        }
-
-                        // 1byte単位にxor
-                        byte* abp = (byte*)alp;
-                        byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
-                        {
-                            *abp = (byte)(*abp++ ^ *mbp++);
-                        }
-                        alp = (long*)abp;
-                    }
-                }
+                maskByteArrayXorMethod = MaskByteArrayXorVector256;
             }
-        }
-
-        private unsafe void MaskByteArrayVector128(byte[] array, int offset, int count)
-        {
-            int xorCount = 0;
-            int iCount = 0;
-            int iMaskSize = 0;
-            UIntPtr iPtr;
-
-            fixed (byte* ap = array)
+            else if (vector128Supported)
             {
-                long* alp = (long*)(ap + offset);
-
-                while (xorCount < count)
-                {
-                    // 次のマスク配列取得
-                    if (aesMaskPosition == MASK_SIZE)
-                    {
-                        GetNextMask();
-                    }
-
-                    fixed (byte* mp = aesMaskBytes)
-                    {
-                        long* mlp = (long*)(mp + aesMaskPosition);
-
-                        // 16byte単位にxor
-                        iCount = count - 16;
-                        iMaskSize = MASK_SIZE - 16;
-                        for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 16, aesMaskPosition += 16, iPtr += 2)
-                        {
-                            Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
-                        }
-                        alp += iPtr;
-                        mlp += iPtr;
-
-                        // 8byte単位にxor
-                        iCount = count - 8;
-                        iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-                        {
-                            *alp++ ^= *mlp++;
-                        }
-
-                        // 1byte単位にxor
-                        byte* abp = (byte*)alp;
-                        byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
-                        {
-                            *abp = (byte)(*abp++ ^ *mbp++);
-                        }
-                        alp = (long*)abp;
-                    }
-                }
+                maskByteArrayXorMethod = MaskByteArrayXorVector128;
             }
-        }
+            else
+            {
+                maskByteArrayXorMethod = MaskByteArrayXorNoSimd;
+            }
 
 #elif NET5_0_OR_GREATER
 
-        private unsafe void MaskByteArrayAvx2(byte[] array, int offset, int count)
-        {
-            int xorCount = 0;
-            int iCount = 0;
-            int iMaskSize = 0;
-
-            fixed (byte* ap = array)
+            if (avx2Supported)
             {
-                long* alp = (long*)(ap + offset);
-
-                while (xorCount < count)
-                {
-                    // 次のマスク配列取得
-                    if (aesMaskPosition == MASK_SIZE)
-                    {
-                        GetNextMask();
-                    }
-
-                    fixed (byte* mp = aesMaskBytes)
-                    {
-                        long* mlp = (long*)(mp + aesMaskPosition);
-
-                        // AVX2 を使用して32Byte単位にxor
-                        iCount = count - 32;
-                        iMaskSize = MASK_SIZE - 32;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 32, aesMaskPosition += 32, alp += 4, mlp += 4)
-                        {
-                            Avx2.Store(alp, Avx2.Xor(Avx2.LoadVector256(alp), Avx2.LoadVector256(mlp)));
-                        }
-
-                        // 8byte単位にxor
-                        iCount = count - 8;
-                        iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-                        {
-                            *alp++ ^= *mlp++;
-                        }
-
-                        // 1byte単位にxor
-                        byte* abp = (byte*)alp;
-                        byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
-                        {
-                            *abp = (byte)(*abp++ ^ *mbp++);
-                        }
-                        alp = (long*)abp;
-                    }
-                }
+                maskByteArrayXorMethod = MaskByteArrayXorAvx2;
             }
+            else if (advSimdSupported)
+            {
+                maskByteArrayXorMethod = MaskByteArrayXorAdvSimd;
+            }
+            else
+            {
+                maskByteArrayXorMethod = MaskByteArrayXorNoSimd;
+            }
+
+#else
+
+            maskByteArrayXorMethod = MaskByteArrayXorNoSimd;
+
+#endif
+
         }
 
-        private unsafe void MaskByteArrayAdvSimd(byte[] array, int offset, int count)
+#if NET7_0_OR_GREATER
+
+
+        /// <summary>Vector512でマスク処理</summary>
+        private unsafe void MaskByteArrayXorVector512(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
-            int xorCount = 0;
-            int iCount = 0;
-            int iMaskSize = 0;
-
-            fixed (byte* ap = array)
+            UIntPtr iPtr;
+            for (iPtr = 0; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64, iPtr += 8)
             {
-                long* alp = (long*)(ap + offset);
-
-                while (xorCount < count)
-                {
-                    // 次のマスク配列取得
-                    if (aesMaskPosition == MASK_SIZE)
-                    {
-                        GetNextMask();
-                    }
-
-                    fixed (byte* mp = aesMaskBytes)
-                    {
-                        long* mlp = (long*)(mp + aesMaskPosition);
-
-                        //  AdvSIMD を使用して16Byte単位にxor
-                        iCount = count - 16;
-                        iMaskSize = MASK_SIZE - 16;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 16, aesMaskPosition += 16, alp += 2, mlp += 2)
-                        {
-                            AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
-                        }
-
-                        // 8byte単位にxor
-                        iCount = count - 8;
-                        iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-                        {
-                            *alp++ ^= *mlp++;
-                        }
-
-                        // 1byte単位にxor
-                        byte* abp = (byte*)alp;
-                        byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
-                        {
-                            *abp = (byte)(*abp++ ^ *mbp++);
-                        }
-                        alp = (long*)abp;
-                    }
-                }
+                Vector512.StoreUnsafe(Vector512.Xor(Vector512.LoadUnsafe(ref *alp, iPtr), Vector512.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
             }
+            alp += iPtr;
+            mlp += iPtr;
+
+            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
+
+        }
+
+        /// <summary>Vector256でマスク処理</summary>
+        private unsafe void MaskByteArrayXorVector256(ref long* alp, ref long* mlp, int count, ref int xorCount)
+        {
+            UIntPtr iPtr;
+            for (iPtr = 0; xorCount <= (count - 32) && aesMaskPosition <= (MASK_SIZE - 32); xorCount += 32, aesMaskPosition += 32, iPtr += 4)
+            {
+                Vector256.StoreUnsafe(Vector256.Xor(Vector256.LoadUnsafe(ref *alp, iPtr), Vector256.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+            }
+            alp += iPtr;
+            mlp += iPtr;
+
+            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
+
+        }
+
+        /// <summary>Vector128でマスク処理</summary>
+        private unsafe void MaskByteArrayXorVector128(ref long* alp, ref long* mlp, int count, ref int xorCount)
+        {
+            UIntPtr iPtr;
+            for (iPtr = 0; xorCount <= (count - 16) && aesMaskPosition <= (MASK_SIZE - 16); xorCount += 16, aesMaskPosition += 16, iPtr += 2)
+            {
+                Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+            }
+            alp += iPtr;
+            mlp += iPtr;
+
+            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
+
+        }
+
+
+#elif NET5_0_OR_GREATER
+
+        /// <summary>Avx2でマスク処理</summary>
+        private unsafe void MaskByteArrayXorAvx2(ref long* alp, ref long* mlp, int count, ref int xorCount)
+        {
+            for (; xorCount <= (count - 32) && aesMaskPosition <= (MASK_SIZE - 32); xorCount += 32, aesMaskPosition += 32, alp += 4, mlp += 4)
+            {
+                Avx2.Store(alp, Avx2.Xor(Avx2.LoadVector256(alp), Avx2.LoadVector256(mlp)));
+            }
+
+            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
+
+        }
+
+        /// <summary>Avx2でマスク処理</summary>
+        private unsafe void MaskByteArrayXorAdvSimd(ref long* alp, ref long* mlp, int count, ref int xorCount)
+        {
+            for (; xorCount <= (count - 16) && aesMaskPosition <= (MASK_SIZE - 16); xorCount += 16, aesMaskPosition += 16, alp += 2, mlp += 2)
+            {
+                AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
+            }
+
+            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
+
         }
 
 #endif
 
-        private unsafe void MaskByteArrayNoSimd(byte[] array, int offset, int count)
+        /// <summary>Longでマスク処理</summary>
+        private unsafe void MaskByteArrayXorNoSimd(ref long* alp, ref long* mlp, int count, ref int xorCount)
+        {
+            for (; xorCount <= (count - 8) && aesMaskPosition <= (MASK_SIZE - 8); xorCount += 8, aesMaskPosition += 8)
+            {
+                *alp++ ^= *mlp++;
+            }
+        }
+
+        private unsafe void MaskByteArray(byte[] array, int offset, int count)
         {
             int xorCount = 0;
-            int iCount = 0;
-            int iMaskSize = 0;
-
+         
             fixed (byte* ap = array)
             {
                 long* alp = (long*)(ap + offset);
@@ -1200,22 +1036,18 @@ namespace YGMailLib.Zip.Streams
                     {
                         long* mlp = (long*)(mp + aesMaskPosition);
 
-                        // 8byte単位にxor
-                        iCount = count - 8;
-                        iMaskSize = MASK_SIZE - 8;
-                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-                        {
-                            *alp++ ^= *mlp++;
-                        }
+                        // SIMDを使用してxor処理
+                        maskByteArrayXorMethod(ref alp, ref mlp, count, ref xorCount);
 
                         // 1byte単位にxor
                         byte* abp = (byte*)alp;
                         byte* mbp = (byte*)mlp;
-                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
+                        for (; xorCount < count && aesMaskPosition < MASK_SIZE; xorCount++, aesMaskPosition++)
                         {
                             *abp = (byte)(*abp++ ^ *mbp++);
                         }
                         alp = (long*)abp;
+
                     }
                 }
             }
@@ -1431,7 +1263,7 @@ namespace YGMailLib.Zip.Streams
             }
 
             // バッファをマスク
-            maskByteArrayMethod(buffer, offset, count);
+            MaskByteArray(buffer, offset, count);
 
             // バッファを出力
             writeStream.Write(buffer, offset, count);
@@ -1469,7 +1301,7 @@ namespace YGMailLib.Zip.Streams
             this.calcHmac.TransformBlock(buffer, offset, readCount, null, 0);
 
             // バッファをマスク
-            maskByteArrayMethod(buffer, offset, readCount);
+            MaskByteArray(buffer, offset, readCount);
 
             totalReadCount += readCount;
 
@@ -1510,6 +1342,7 @@ namespace YGMailLib.Zip.Streams
                     writeStream = null;
                     try { readStream?.Dispose(); } catch { } finally { }
                 }
+                maskByteArrayXorMethod = null;
                 base.Dispose(disposing);
             }
             disposedValue = true;

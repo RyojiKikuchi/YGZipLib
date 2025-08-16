@@ -160,7 +160,7 @@ namespace YGMailLib.Zip
         private readonly Queue<PartInfoClass> partInfoList = new Queue<PartInfoClass>();
 
         /// <summary>ディレクトリ辞書(格納ディレクトリ名)</summary>
-        private readonly Dictionary<string, bool> dirDic = new Dictionary<string, bool>();
+        private readonly HashSet<string> dirDic = new HashSet<string>();
 
         /// <summary>ディレクトリ辞書(入力されたディレクトリ)</summary>
         private readonly Dictionary<string, string> dirDicOrg = new Dictionary<string, string>();
@@ -1546,11 +1546,11 @@ if (filenameEncoding == null)
             lock (dirDic)
             {
                 // 既に追加済なら終了する
-                if (dirDic.ContainsKey(directoryName) == true)
+                if (dirDic.Contains(directoryName) == true)
                 {
                     return;
                 }
-                dirDic.Add(directoryName, false);
+                dirDic.Add(directoryName);
 
                 // PartInfo のディレクトリ用編集
                 PartInfoClass partInfo = new PartInfoClass();

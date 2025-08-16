@@ -717,6 +717,11 @@
             <param name="count">マスクバイト数</param>
             <param name="xorCount">xor処理済カウンタ</param>
         </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.SetMaskByteArrayXorMethod">
+            <summary>
+            マスク配列処理メソッド設定
+            </summary>
+        </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector512(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
             <summary>Vector512でマスク処理</summary>
         </member>

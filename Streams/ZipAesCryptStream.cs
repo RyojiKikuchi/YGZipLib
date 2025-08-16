@@ -19,6 +19,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Serialization.Formatters;
+using System.Runtime.CompilerServices;
 #endif
 
 #if YGZIPLIB
@@ -32,7 +33,7 @@ namespace YGMailLib.Zip.Streams
     /// ZIP AES暗号化クラス
     /// </summary>
     /// <remarks></remarks>
-    internal unsafe class ZipAesCryptStream : Stream, IDisposable
+    internal class ZipAesCryptStream : Stream, IDisposable
     {
 
         #region "ENUM"
@@ -885,8 +886,10 @@ namespace YGMailLib.Zip.Streams
         /// <summary>
         /// マスク配列処理メソッド設定
         /// </summary>
-        private void SetMaskByteArrayXorMethod()
+        private unsafe void SetMaskByteArrayXorMethod()
         {
+
+            // SIMDサポート判定
 
 #if NET8_0_OR_GREATER
 
@@ -934,47 +937,55 @@ namespace YGMailLib.Zip.Streams
 
 
         /// <summary>Vector512でマスク処理</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void MaskByteArrayXorVector512(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
             UIntPtr iPtr;
-            for (iPtr = 0; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64, iPtr += 8)
+            for (iPtr = 0; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64)
             {
                 Vector512.StoreUnsafe(Vector512.Xor(Vector512.LoadUnsafe(ref *alp, iPtr), Vector512.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 8;
             }
             alp += iPtr;
             mlp += iPtr;
-
-            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
 
         }
 
         /// <summary>Vector256でマスク処理</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void MaskByteArrayXorVector256(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
             UIntPtr iPtr;
-            for (iPtr = 0; xorCount <= (count - 32) && aesMaskPosition <= (MASK_SIZE - 32); xorCount += 32, aesMaskPosition += 32, iPtr += 4)
+            for (iPtr = 0; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64)
             {
                 Vector256.StoreUnsafe(Vector256.Xor(Vector256.LoadUnsafe(ref *alp, iPtr), Vector256.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 4;
+                Vector256.StoreUnsafe(Vector256.Xor(Vector256.LoadUnsafe(ref *alp, iPtr), Vector256.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 4;
             }
             alp += iPtr;
             mlp += iPtr;
-
-            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
 
         }
 
         /// <summary>Vector128でマスク処理</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void MaskByteArrayXorVector128(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
             UIntPtr iPtr;
-            for (iPtr = 0; xorCount <= (count - 16) && aesMaskPosition <= (MASK_SIZE - 16); xorCount += 16, aesMaskPosition += 16, iPtr += 2)
+            for (iPtr = 0; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64)
             {
                 Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 2;
+                Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 2;
+                Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 2;
+                Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
+                iPtr += 2;
             }
             alp += iPtr;
             mlp += iPtr;
-
-            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
 
         }
 
@@ -982,36 +993,54 @@ namespace YGMailLib.Zip.Streams
 #elif NET5_0_OR_GREATER
 
         /// <summary>Avx2でマスク処理</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void MaskByteArrayXorAvx2(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
-            for (; xorCount <= (count - 32) && aesMaskPosition <= (MASK_SIZE - 32); xorCount += 32, aesMaskPosition += 32, alp += 4, mlp += 4)
+            for (; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64)
             {
                 Avx2.Store(alp, Avx2.Xor(Avx2.LoadVector256(alp), Avx2.LoadVector256(mlp)));
+                alp += 4;mlp += 4;
+                Avx2.Store(alp, Avx2.Xor(Avx2.LoadVector256(alp), Avx2.LoadVector256(mlp)));
+                alp += 4; mlp += 4;
             }
-
-            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
 
         }
 
         /// <summary>Avx2でマスク処理</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void MaskByteArrayXorAdvSimd(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
-            for (; xorCount <= (count - 16) && aesMaskPosition <= (MASK_SIZE - 16); xorCount += 16, aesMaskPosition += 16, alp += 2, mlp += 2)
+            for (; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64)
             {
                 AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
+                alp += 2; mlp += 2;
+                AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
+                alp += 2; mlp += 2;
+                AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
+                alp += 2; mlp += 2;
+                AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
+                alp += 2; mlp += 2;
             }
-
-            MaskByteArrayXorNoSimd(ref alp, ref mlp, count, ref xorCount);
 
         }
 
 #endif
 
         /// <summary>Longでマスク処理</summary>
+#if NET5_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private unsafe void MaskByteArrayXorNoSimd(ref long* alp, ref long* mlp, int count, ref int xorCount)
         {
-            for (; xorCount <= (count - 8) && aesMaskPosition <= (MASK_SIZE - 8); xorCount += 8, aesMaskPosition += 8)
+            for (; xorCount <= (count - 64) && aesMaskPosition <= (MASK_SIZE - 64); xorCount += 64, aesMaskPosition += 64)
             {
+                *alp++ ^= *mlp++;
+                *alp++ ^= *mlp++;
+                *alp++ ^= *mlp++;
+                *alp++ ^= *mlp++;
+                *alp++ ^= *mlp++;
+                *alp++ ^= *mlp++;
+                *alp++ ^= *mlp++;
                 *alp++ ^= *mlp++;
             }
         }
@@ -1036,8 +1065,14 @@ namespace YGMailLib.Zip.Streams
                     {
                         long* mlp = (long*)(mp + aesMaskPosition);
 
-                        // SIMDを使用してxor処理
+                        // 64byte単位にxor
                         maskByteArrayXorMethod(ref alp, ref mlp, count, ref xorCount);
+
+                        // 8byte単位にxor
+                        for (; xorCount <= (count - 8) && aesMaskPosition <= (MASK_SIZE - 8); xorCount += 8, aesMaskPosition += 8)
+                        {
+                            *alp++ ^= *mlp++;
+                        }
 
                         // 1byte単位にxor
                         byte* abp = (byte*)alp;
@@ -1052,115 +1087,6 @@ namespace YGMailLib.Zip.Streams
                 }
             }
         }
-
-
-//        /// <summary>
-//        /// 入出力バッファとマスク配列をxorして暗号化／復号化を行う
-//        /// </summary>
-//        /// <param name="array">入出力バッファ</param>
-//        /// <param name="offset">オフセット</param>
-//        /// <param name="count">カウント</param>
-//        private unsafe void MaskByteArray(byte[] array, int offset, int count)
-//        {
-//            int xorCount = 0;
-//            int iCount = 0;
-//            int iMaskSize = 0;
-//#if NET7_0_OR_GREATER
-//            UIntPtr iPtr;
-//#endif
-//            fixed (byte* ap = array)
-//            {
-//                long* alp = (long*)(ap + offset);
-
-//                while (xorCount < count)
-//                {
-//                    // 次のマスク配列取得
-//                    if (aesMaskPosition == MASK_SIZE)
-//                    {
-//                        GetNextMask();
-//                    }
-
-//                    fixed (byte* mp = aesMaskBytes)
-//                    {
-//                        long* mlp = (long*)(mp + aesMaskPosition);
-
-//#if NET7_0_OR_GREATER
-//                        if (vector512Supported)
-//                        {
-//                            iCount = count - 64;
-//                            iMaskSize = MASK_SIZE - 64;
-//                            for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 64, aesMaskPosition += 64, iPtr += 8)
-//                            {
-//                                Vector512.StoreUnsafe(Vector512.Xor(Vector512.LoadUnsafe(ref *alp, iPtr), Vector512.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
-//                            }
-//                            alp += iPtr;
-//                            mlp += iPtr;
-//                        }
-//                        else if (vector256Supported)
-//                        {
-//                            iCount = count - 32;
-//                            iMaskSize = MASK_SIZE - 32;
-//                            for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 32, aesMaskPosition += 32, iPtr += 4)
-//                            {
-//                                Vector256.StoreUnsafe(Vector256.Xor(Vector256.LoadUnsafe(ref *alp, iPtr), Vector256.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
-//                            }
-//                            alp += iPtr;
-//                            mlp += iPtr;
-//                        }
-//                        else if (vector128Supported)
-//                        {
-//                            iCount = count - 16;
-//                            iMaskSize = MASK_SIZE - 16;
-//                            for (iPtr = 0; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 16, aesMaskPosition += 16, iPtr += 2)
-//                            {
-//                                Vector128.StoreUnsafe(Vector128.Xor(Vector128.LoadUnsafe(ref *alp, iPtr), Vector128.LoadUnsafe(ref *mlp, iPtr)), ref *alp, iPtr);
-//                            }
-//                            alp += iPtr;
-//                            mlp += iPtr;
-//                        }
-//#elif NET5_0_OR_GREATER
-//                        if (avx2Supported)
-//                        {
-//                            // AVX2 を使用して32Byte単位にxor
-//                            iCount = count - 32;
-//                            iMaskSize = MASK_SIZE - 32;
-//                            for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 32, aesMaskPosition += 32, alp += 4, mlp += 4)
-//                            {
-//                                Avx2.Store(alp, Avx2.Xor(Avx2.LoadVector256(alp), Avx2.LoadVector256(mlp)));
-//                            }
-//                        }
-//                        else if (advSimdSupported)
-//                        {
-//                            //  AdvSIMD を使用して16Byte単位にxor
-//                            iCount = count - 16;
-//                            iMaskSize = MASK_SIZE - 16;
-//                            for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 16, aesMaskPosition += 16, alp += 2, mlp += 2)
-//                            {
-//                                AdvSimd.Store(alp, AdvSimd.Xor(AdvSimd.LoadVector128(alp), AdvSimd.LoadVector128(mlp)));
-//                            }
-//                        }
-//#endif
-
-//                        // 8byte単位にxor
-//                        iCount = count - 8;
-//                        iMaskSize = MASK_SIZE - 8;
-//                        for (; xorCount <= iCount && aesMaskPosition <= iMaskSize; xorCount += 8, aesMaskPosition += 8)
-//                        {
-//                            *alp++ ^= *mlp++;
-//                        }
-
-//                        // 1byte単位にxor
-//                        byte* abp = (byte*)alp;
-//                        byte* mbp = (byte*)mlp;
-//                        for (; xorCount < count && (aesMaskPosition) < MASK_SIZE; xorCount++, aesMaskPosition++)
-//                        {
-//                            *abp = (byte)(*abp++ ^ *mbp++);
-//                        }
-//                        alp = (long*)abp;
-//                    }
-//                }
-//            }
-//        }
 
         #endregion
 

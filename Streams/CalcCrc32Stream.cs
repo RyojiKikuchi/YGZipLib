@@ -80,7 +80,7 @@ namespace YGMailLib.Zip.Streams
 			this.streamMode = streamMode;
             fixed (UInt32* crcTable = fixedBuf.crcTable)
             {
-                ShareMethodClass.SetCrcTable(crcTable);
+                ShareMethodClass.CopyCrcTable(crcTable);
             }
 
         }

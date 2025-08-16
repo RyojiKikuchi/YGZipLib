@@ -42,9 +42,9 @@ namespace YGMailLib.Zip.Common
         private static readonly string defaultReplacementString;
 
         /// <summary>ファイル名として使用不可能な文字</summary>
-        private static readonly Dictionary<char, bool> invFileNameChars = new Dictionary<char, bool>();
+        private static readonly HashSet<char> invFileNameChars = new HashSet<char>();
         /// <summary>ディレクトリ名として使用不可能な文字</summary>
-        private static readonly Dictionary<char, bool> invPathNameChars = new Dictionary<char, bool>();
+        private static readonly HashSet<char> invPathNameChars = new HashSet<char>();
 
         private static readonly object encLockObj = new object();
 
@@ -98,15 +98,15 @@ namespace YGMailLib.Zip.Common
 		{
             // 使用不可文字の設定
             Path.GetInvalidPathChars().ToList().ForEach(c => {
-                invPathNameChars.Add(c, true);
+                invPathNameChars.Add(c);
             });
-			if (invPathNameChars.ContainsKey('*') == false) invPathNameChars.Add('*', true);
-            if (invPathNameChars.ContainsKey('?') == false) invPathNameChars.Add('?', true);
+			if (invPathNameChars.Contains('*') == false) invPathNameChars.Add('*');
+            if (invPathNameChars.Contains('?') == false) invPathNameChars.Add('?');
             Path.GetInvalidFileNameChars().ToList().ForEach(c => {
-                invFileNameChars.Add(c, true);
+                invFileNameChars.Add(c);
             });
-            if (invFileNameChars.ContainsKey('*') == false) invFileNameChars.Add('*', true);
-            if (invFileNameChars.ContainsKey('?') == false) invFileNameChars.Add('?', true);
+            if (invFileNameChars.Contains('*') == false) invFileNameChars.Add('*');
+            if (invFileNameChars.Contains('?') == false) invFileNameChars.Add('?');
 
             // コードページ取得
             try
@@ -251,10 +251,10 @@ namespace YGMailLib.Zip.Common
         #region CRC Table
 
         /// <summary>
-        /// CRCテーブル設定
+        /// CRCテーブルコピー
         /// </summary>
         /// <param name="destCrc"></param>
-        internal static unsafe void SetCrcTable(uint* destCrc)
+        internal static unsafe void CopyCrcTable(uint* destCrc)
 		{
 			fixed(uint* sourceCrc = crcTable)
 			{
@@ -349,6 +349,7 @@ namespace YGMailLib.Zip.Common
 			}
 		}
 
+        /// <summary>StringをByte配列に変換する(スレッドセーフ)</summary>
 		internal static byte[] EncodingGetBytes(string text, Encoding enc)
 		{
 			byte[] ret = null;
@@ -356,16 +357,24 @@ namespace YGMailLib.Zip.Common
 			return ret;
 		}
 
+        /// <summary>Byte配列をStringに変換する(スレッドセーフ)</summary>
 		internal static string EncodingGetString(byte[] byteArray, Encoding enc)
 		{
-			string ret = null;
-			EncodingGet(enc, ref ret, ref byteArray);
+            string ret = null;
+            EncodingGet(enc, ref ret, ref byteArray);
 			return ret;
 		}
 
+        /// <summary>
+        /// EncodingのGetString,GetBytesをスレッドセーフにするためのメソッド
+        /// </summary>
+        /// <param name="enc"></param>
+        /// <param name="text"></param>
+        /// <param name="byteArray"></param>
+        /// <remarks><see cref="EncodingGetBytes(string, Encoding)"/>または<see cref="EncodingGetString(byte[], Encoding)"/>から呼び出される。</remarks>
 		private static void EncodingGet(Encoding enc,ref string text,ref byte[] byteArray)
 		{
-            // EncodingのGetStrings,GetBytesがスレッドセーフではなさそうなのでsynclockしておく
+            // EncodingのGetStrings,GetBytesがスレッドセーフではなさそうなのでlockしておく
             lock (encLockObj)
 			{
                 if (text == null)
@@ -478,7 +487,7 @@ namespace YGMailLib.Zip.Common
         {
             StringBuilder sb = new StringBuilder();
             if ((extAttr & (UInt32)FileAttributes.ReadOnly) > 0)
-                sb.Append("|Directory");
+                sb.Append("|ReadOnly");
             if ((extAttr & (UInt32)FileAttributes.Hidden) > 0)
                 sb.Append("|Hidden");
             if ((extAttr & (UInt32)FileAttributes.System) > 0)
@@ -540,7 +549,7 @@ namespace YGMailLib.Zip.Common
         /// <returns></returns>
         internal static string ByteArrayToHex(byte[] bytes, bool separator)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(bytes.Length * 3);
             foreach (byte b in bytes)
             {
                 if (separator && sb.Length > 0)
@@ -563,12 +572,13 @@ namespace YGMailLib.Zip.Common
         /// <returns></returns>
         internal static unsafe Boolean CheckPathName(string pathName)
 		{
+            if (string.IsNullOrEmpty(pathName)) return true;
             fixed (char* pp = pathName)
             {
                 char* pp2 = pp;
                 for (int i = 0; i < pathName.Length; i++)
                 {
-                    if (invPathNameChars.ContainsKey(*pp2++))
+                    if (invPathNameChars.Contains(*pp2++))
                     {
                         return false;
                     }
@@ -584,12 +594,13 @@ namespace YGMailLib.Zip.Common
         /// <returns></returns>
         internal static unsafe bool CheckFileName(string fileName)
         {
+            if (string.IsNullOrEmpty(fileName)) return true;
             fixed (char* fp = fileName)
             {
                 char* fpp = fp;
                 for (int i = 0; i < fileName.Length; i++)
                 {
-                    if (invFileNameChars.ContainsKey(*fpp++))
+                    if (invFileNameChars.Contains(*fpp++))
                     {
                         return false;
                     }
@@ -600,35 +611,37 @@ namespace YGMailLib.Zip.Common
 
         internal static string ReplaceInvPathChar(string pathName)
 		{
-			StringBuilder sb = new StringBuilder();
-			pathName.ToList().ForEach(c => {
-                if (invPathNameChars.ContainsKey(c) == true)
-                {
-                    sb.Append('-');
-                }
-                else
-                {
-					sb.Append(c);
-
-                }
-            });
-			return sb.ToString();
-        }
-
-        internal static string ReplaceInvFileChar(string fileName)
-		{
+            if (string.IsNullOrEmpty(pathName)) return pathName;
             StringBuilder sb = new StringBuilder();
-            fileName.ToList().ForEach(c => {
-                if (invFileNameChars.ContainsKey(c) == true)
+            foreach (char c in pathName)
+            {
+                if (invPathNameChars.Contains(c))
                 {
                     sb.Append('-');
                 }
                 else
                 {
                     sb.Append(c);
-
                 }
-            });
+            }
+            return sb.ToString();
+        }
+
+        internal static string ReplaceInvFileChar(string fileName)
+		{
+            if (string.IsNullOrEmpty(fileName)) return fileName;
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in fileName)
+            {
+                if (invFileNameChars.Contains(c))
+                {
+                    sb.Append('-');
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
             return sb.ToString();
         }
 
@@ -837,15 +850,19 @@ namespace YGMailLib.Zip.Common
             {
                 throw new DirectoryNotFoundException($"Temporary directory does not exist. {tempPath}");
             }
-            RandomNumberGenerator rng = RandomNumberGenerator.Create();
-            byte[] randomBytes = new byte[16];
-            rng.GetBytes(randomBytes);
 
-            string tempFileName = Path.Combine(tempPath, $"{TEMP_FILE_PREFIX}_{Guid.NewGuid():N}_{ByteArrayToHex(randomBytes)}_{Interlocked.Increment(ref tempFileCounter)}.tmp");
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                byte[] randomBytes = new byte[8];
+                rng.GetBytes(randomBytes);
+
+                string tempFileName = Path.Combine(tempPath, $"{TEMP_FILE_PREFIX}_{Guid.NewGuid():N}_{ByteArrayToHex(randomBytes)}_{ByteArrayToHex(BitConverter.GetBytes(Interlocked.Increment(ref tempFileCounter)))}.tmp");
 #if DEBUG
-            Debug.WriteLine($"ShareMethodClass.GetTempFile : tempFileName={tempFileName}");
+                Debug.WriteLine($"ShareMethodClass.GetTempFile : tempFileName={tempFileName}");
 #endif
-            return Path.GetFullPath(tempFileName);
+                return Path.GetFullPath(tempFileName);
+            }
+
         }
 
 #endregion

@@ -124,9 +124,9 @@
             <returns></returns>
             <remarks></remarks>
         </member>
-        <member name="M:YGZipLib.Common.ShareMethodClass.SetCrcTable(System.UInt32*)">
+        <member name="M:YGZipLib.Common.ShareMethodClass.CopyCrcTable(System.UInt32*)">
             <summary>
-            CRCテーブル設定
+            CRCテーブルコピー
             </summary>
             <param name="destCrc"></param>
         </member>
@@ -155,6 +155,21 @@
             <summary>
             US-ASCII(codepage=20127)
             </summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGetBytes(System.String,System.Text.Encoding)">
+            <summary>StringをByte配列に変換する(スレッドセーフ)</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGetString(System.Byte[],System.Text.Encoding)">
+            <summary>Byte配列をStringに変換する(スレッドセーフ)</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGet(System.Text.Encoding,System.String@,System.Byte[]@)">
+            <summary>
+            EncodingのGetString,GetBytesをスレッドセーフにするためのメソッド
+            </summary>
+            <param name="enc"></param>
+            <param name="text"></param>
+            <param name="byteArray"></param>
+            <remarks><see cref="M:YGZipLib.Common.ShareMethodClass.EncodingGetBytes(System.String,System.Text.Encoding)"/>または<see cref="M:YGZipLib.Common.ShareMethodClass.EncodingGetString(System.Byte[],System.Text.Encoding)"/>から呼び出される。</remarks>
         </member>
         <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayToHex(System.Byte[])">
             <summary>
@@ -494,15 +509,6 @@
         </member>
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskThread">
             <summary>マスク作成タスク</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector512Supported">
-            <summary>Vector512サポート判定</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector256Supported">
-            <summary>Vector256サポート判定</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.ZipAesCryptStream.vector128Supported">
-            <summary>Vector128サポート判定</summary>
         </member>
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.avx2Supported">
             <summary>AVX2サポート判定</summary>

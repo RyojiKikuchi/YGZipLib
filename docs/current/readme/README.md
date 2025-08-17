@@ -150,7 +150,3 @@ Finish should be called at the end when creating a ZIP archive.
 # License
  
 "YGZipLib" is under [MIT license](https://opensource.org/licenses/mit-license.php)
-
-This library includes the work that is distributed in the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).  
-The Deflate64 code included in YGZipLib is based on the following java source from [Apache Commons Compress™](https://commons.apache.org/proper/commons-compress/).
-

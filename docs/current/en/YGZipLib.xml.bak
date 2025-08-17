@@ -1,0 +1,2109 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>YGZipLib</name>
+    </assembly>
+    <members>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileName">
+            <summary>file-name</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileCreateTimeStamp">
+            <summary>Creation timestamp of the stored file</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileModifyTimeStamp">
+            <summary>Update timestamp of the stored file</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileAccessTimeStamp">
+            <summary>Access time stamp of stored files</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileAttribute">
+            <summary>file attributes</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.CompressionOption">
+            <summary>Compression Option</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.CompressionLevel">
+            <summary>Compression Level</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.EncryptionOption">
+            <summary>Encryption Option</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Password">
+            <summary>Encryption password</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0102Header">
+            <summary>PK0102Header</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0304HeaderPos">
+            <summary>PK0304Header position</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0304Header">
+            <summary>PK0304Header</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0708Header">
+            <summary>PK0708Header</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.NtfsTimestampExtraData">
+            <summary>NTFS TimeStamp ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.ExtendedTimestampExtraData">
+            <summary>Extended TimeStamp ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.AesExtraData">
+            <summary>AES ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Zip64ExtraData">
+            <summary>Zip64 ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.UnicodePathExtraData">
+            <summary>Unicode Path ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.WriteDataDescriptor">
+            <summary>Output DataDescriptor(PK0708)</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.IsDirectory">
+            <summary>directory</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.invFileNameChars">
+            <summary>Characters that cannot be used as file names</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.invPathNameChars">
+            <summary>Characters that cannot be used as directory names</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.crcTable">
+            <summary>CRC32Table</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.StreamReadBuffer(System.IO.Stream,System.Byte[])">
+            <summary>
+            Reads from the stream for the specified buffer length. If the end of the stream is reached in the middle, an exception is raised.
+            </summary>
+            <param name="st"></param>
+            <param name="buffer"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodeDosFileDate(System.DateTime)">
+            <summary>
+            Time editing in DOS format
+            </summary>
+            <param name="fileTime"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodeDosFileTime(System.DateTime)">
+            <summary>
+            Date editing in DOS format
+            </summary>
+            <param name="fileTimeStamp"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.DecodeDosFileDateTime(System.UInt16,System.UInt16)">
+            <summary>
+            Convert DOS format date to DateTime type
+            </summary>
+            <param name="fileDate"></param>
+            <param name="fileTime"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.SetCrcTable(System.UInt32*)">
+            <summary>
+            Get CRC table
+            </summary>
+            <param name="destCrc"></param>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayCompare(System.Byte[],System.Byte[])">
+            <summary>
+            Checks if byte arrays are equal
+            </summary>
+            <param name="byteArray1"></param>
+            <param name="byteArray2"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.Common.ShareMethodClass.AnsiEncoding">
+            <summary>
+            ANSI encoding of system specifications
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.Common.ShareMethodClass.Utf8Encoding">
+            <summary>
+            UTF-8(codepage=65001)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Common.ShareMethodClass.AsciiEncoding">
+            <summary>
+            US-ASCII(codepage=20127)
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayToHex(System.Byte[])">
+            <summary>
+            Convert a byte array to a: delimited string
+            </summary>
+            <param name="bytes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckPathName(System.String)">
+            <summary>
+            Checks for directory names that do not contain characters that cannot be used.
+            </summary>
+            <param name="pathName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckFileName(System.String)">
+            <summary>
+            Check for file names that do not contain any invalid characters.
+            </summary>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckDirectories(YGZipLib.UnZipArcClass,System.Collections.Generic.List{YGZipLib.UnZipArcClass.CentralDirectoryInfo})">
+            <summary>
+            Central Directory Check
+            </summary>
+            <param name="unzip"></param>
+            <param name="cds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckDirectory(YGZipLib.UnZipArcClass,YGZipLib.UnZipArcClass.CentralDirectoryInfo)">
+            <summary>
+            Central Directory Check
+            </summary>
+            <param name="unzip"></param>
+            <param name="cd"></param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0102Info">
+            <summary>
+            CentralDirectory(PK0102)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0304Info">
+            <summary>
+            LocalHeader(PK0304)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0506Info">
+            <summary>
+            EndOfCentralDirectory(PK0506)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0606Info">
+            <summary>
+            Zip64EndOfCentralDirectory(PK0606)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0607Info">
+            <summary>
+            Zip64EndOfCentralDirectoryLocator(PK0607)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0708Info">
+            <summary>
+            DataDescriptor(PK0708)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.AesExtraDataInfo">
+            <summary>
+            AES extra data field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.NtfsDateExtraDataInfo">
+            <summary>
+            NTFS FileTimestamp Extra Data Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.Zip64ExtraDataInfo">
+            <summary>
+            Zip64 Extra Data Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.ExtendedTimestampInfo">
+            <summary>
+            Extended Timestamp Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.UnicodePathExtraDataField">
+            <summary>
+            Info-ZIP Unicode Path Extra Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.BitInputStream">
+            <summary>
+            BitInputStream
+            This code is ported from "Apache Commons Compress Release 1.21
+            src/main/java/org/apache/commons/compress/utils
+              BitInputStream.java
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.BitInputStream.inSt">
+            <summary>Input stream</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.BitInputStream.bitsCached">
+            <summary>Output Stream</summary>
+            <remarks>The type is changed to unsigned because .net does not have the unsigned right shift that java has.</remarks>
+        </member>
+        <member name="F:YGZipLib.Streams.BitInputStream.bitsCachedSize">
+            <summary>Number of bits cached</summary>
+        </member>
+        <member name="T:YGZipLib.Streams.CalcCrc32Stream">
+            <summary>
+            CRC32 calculation class
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.Streams.CalcCrc32Stream.Crc32">
+            <summary>
+            Get calculated CRC32
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.CalcCrc32Stream.#ctor(System.IO.Stream,YGZipLib.Streams.CalcCrc32Stream.StreamMode)">
+            <summary>
+            constructor
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.CalcCrc32Stream.ResetCrc32">
+            <summary>
+            Reset of CRC32 calculation result
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.Deflate64Stream">
+            <summary>
+            BitInputStream
+            Ported from Apache Commons Compress Release 1.21
+            src/main/java/org/apache/commons/compress/compressors/deflate64
+              Deflate64CompressorInputStream.java
+              HuffmanDecoder.java
+              HuffmanState.java
+            </summary>
+        </member>
+        <member name="T:YGZipLib.Streams.InputStream">
+            <summary>
+            InputStream
+            Stream that can handle a specified range of the original stream as if it were an independent InputStream
+            Do not perform any operation that changes the position of the source stream from other sources.
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.#ctor(System.IO.Stream)">
+            <summary>
+            constructor
+            </summary>
+            <param name="inputStream"></param>
+            <remarks>
+            The entire original stream is InputStream.
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.#ctor(System.IO.Stream,System.Int64)">
+            <summary>
+            constructor
+            </summary>
+            <param name="inputStream"></param>
+            <param name="inputLength"></param>
+            <remarks>
+            InputStream is the specified length from the current position of the original stream.
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.ReadBuffer(System.Byte[])">
+            <summary>
+            Reads the specified buffer length from the source stream. If the end of the stream is reached in the middle, an exception is raised.
+            </summary>
+            <param name="buffer"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.CheckBaseStream(System.IO.Stream)">
+            <summary>
+            Checking the source stream
+            </summary>
+            <param name="baseStream"></param>
+        </member>
+        <member name="T:YGZipLib.Streams.TempStreamManage">
+            <summary>
+            Temporary stream management class
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.FILESTREAM_BUFFER_SIZE">
+            <summary>
+            File stream buffer size
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.lockObject">
+            <summary>
+            Object to lock tempFileList
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.tempDirPath">
+            <summary>
+            Temporary file path
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.tempFileList">
+            <summary>
+            List for managing TempFileStream
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Streams.TempStreamManage.TempFileStream.InUse">
+            <summary>
+            InUse
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream.tempStream">
+            <summary>
+            temporary stream
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream.MAX_MEMORY_STREAM_SIZE">
+            <summary>
+            Maximum size of MemoryStream. Switch to file stream when this size is exceeded.
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream.SwitchToFileStream">
+            <summary>
+            Change from memory stream to file stream
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.GetTempFileStream">
+            <summary>
+            Acquisition of TemporaryFileStream
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.CloseTempFileStream(System.IO.Stream)">
+            <summary>
+            Close the stream
+            </summary>
+            <param name="st"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.DisposeAllStream">
+            <summary>
+            Release all file streams
+            </summary>
+        </member>
+        <member name="T:YGZipLib.Streams.UnzipTemp">
+            <summary>
+            Streams for multi-threaded execution of UnZip
+            </summary>
+        </member>
+        <member name="T:YGZipLib.Streams.WriteCountStream">
+            <summary>
+            Output count stream
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream">
+            <summary>
+            ZIP AES encryption class
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.StreamMode">
+            <summary>
+            StreamMode
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.StreamMode.ENCRYPT">
+            <summary>encryption</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.StreamMode.DECRYPT">
+            <summary>decryption</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.MASK_SIZE">
+            <summary>Maximum mask array size (specified in multiples of 16)</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AES_SALT_LENGTH">
+            <summary>SALT Length Definition</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AES_KEY_LENGTH">
+            <summary>KEY Length Definition</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.writeStream">
+            <summary>Output Stream</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.readStream">
+            <summary>Input Stream</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.totalReadCount">
+            <summary>Bytes read</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.calcHmac">
+            <summary>HMAC Calculation</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.streamMode">
+            <summary>StreamMode</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.maskBytes">
+            <summary>Encryption mask array</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.maskPosition">
+            <summary>Mask array pointer</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskTask">
+            <summary>Mask Creation Task</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.#ctor(System.IO.Stream,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],YGZipLib.Streams.ZipAesCryptStream.StreamMode,System.Int64)">
+            <summary>
+            constructor
+            </summary>
+            <param name="baseStream"></param>
+            <param name="aesMode"></param>
+            <param name="password"></param>
+            <param name="streamMode"></param>
+            <param name="length"></param>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool">
+            <summary>
+            Mask array creation thread pool
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.threadList">
+            <summary>Mask array creation process store list</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.threadListLocker">
+            <summary>Mask array creation process store list lock</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.tm">
+            <summary>Unused thread collection timer</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.#cctor">
+            <summary>
+            constructor
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.GetThread">
+            <summary>
+            Get Thread
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.Tm_Elapsed(System.Object,System.Timers.ElapsedEventArgs)">
+            <summary>
+            Unused thread recovery timer
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.ReturnThread(YGZipLib.Streams.ZipAesCryptStream.AesMaskThread)">
+            <summary>
+            Thread Return
+            </summary>
+            <param name="thread"></param>
+            <exception cref="T:System.ArgumentOutOfRangeException"></exception>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.RemoveThread(YGZipLib.Streams.ZipAesCryptStream.AesMaskThread)">
+            <summary>
+            Thread Deletion
+            </summary>
+            <param name="thread"></param>
+            <remarks>
+            <seealso cref="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.CreateNextMask(System.Object)"/>の最後のfinally句から呼ばれる
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.DisposeUnuseThread(System.Int64)">
+            <summary>
+            Unused thread release
+            </summary>
+            <param name="milliseconds"></param>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread">
+            <summary>
+            Mask array creation processing class
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.isCompleted">
+            <summary>end of process</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.isError">
+            <summary>Error occurred</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskArray">
+            <summary>mask array</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskSelecter">
+            <summary>Mask work selector for encryption</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskCounter">
+            <summary>Mask Counter for Encryption</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.plainArray">
+            <summary>Array for creating masks for encryption</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskArray0">
+            <summary>Mask work for encryption 1</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.maskArray1">
+            <summary>Mask work for encryption 2</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.aesCrypt">
+            <summary>AES</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.aesTrans">
+            <summary>AES encryption/decryption</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.exception">
+            <summary>error information</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.successEvent">
+            <summary>completion event</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.executeEvent">
+            <summary>waiting-for execution event</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.cancelSource">
+            <summary>For mask creation task cancellation</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.cancelToken">
+            <summary>For mask creation task cancellation</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.createMaskThread">
+            <summary>Mask Creation Thread</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.LastUse">
+            <summary>Last used timestamp</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.InUse">
+            <summary>InUse</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.IsUnUsed">
+            <summary>unused judgment</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.#cctor">
+            <summary>
+            constructor
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.#ctor">
+            <summary>
+            constructor
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.SetAesKey(System.Byte[],System.Byte[])">
+            <summary>
+            Set AES key to reset internal state
+            </summary>
+            <param name="aesKey"></param>
+            <param name="aesIv"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.Start">
+            <summary>
+            Mask creation process started
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.GetMaskArray">
+            <summary>
+            Mask array acquisition
+            </summary>
+            <returns></returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThread.CreateNextMask(System.Object)">
+            <summary>
+            Create next mask value
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.InitKey(YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],System.Byte[])">
+            <summary>
+            key initialization
+            </summary>
+            <param name="aesMode">AES　Mode</param>
+            <param name="password">password</param>
+            <param name="aesSalt">salt</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.GetNextMask">
+            <summary>
+            Get next mask value
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArray(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Encryption/compounding with xor input/output buffer and mask array
+            </summary>
+            <param name="array">I/O buffer</param>
+            <param name="offset">offset</param>
+            <param name="count">count</param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.CheckHash">
+            <summary>
+            Check Hash
+            </summary>
+            <exception cref="T:System.Security.Cryptography.CryptographicException"></exception>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipCryptStream">
+            <summary>
+            ZIP encryption class
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.#ctor(System.IO.Stream,System.Byte[],System.UInt32,YGZipLib.Streams.ZipCryptStream.StreamMode)">
+            <summary>
+            constructor
+            </summary>
+            <param name="baseStream">base stream</param>
+            <param name="password">password</param>
+            <param name="crc32">CRC before encryption</param>
+            <param name="streamMode">Encryption or Decryption</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.ZEncode(System.Byte)">
+            <summary>
+            1Byte encryption
+            </summary>
+            <param name="n">Byte value before encryption</param>
+            <returns>Byte value after encryption</returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.ZDecode(System.Byte)">
+            <summary>
+            1Byte decryption
+            </summary>
+            <param name="n">Byte value before decryption</param>
+            <returns>Byte value after decryption</returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.UpdateKeys(System.Byte)">
+            <summary>
+            ZIP encryption key update
+            </summary>
+            <param name="n"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.InitZipDecrypt(System.Byte[],System.UInt32)">
+            <summary>
+            ZIP encryption initialization (decryption)
+            </summary>
+            <param name="password"></param>
+            <param name="crc32"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.InitZipEncrypt(System.Byte[],System.UInt32)">
+            <summary>
+            ZIP encryption initialization (encryption)
+            </summary>
+            <param name="password"></param>
+            <param name="crc32"></param>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.UnZipArcClass">
+            <summary>
+            ZIP archive expansion class
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.MAX_SEMAPHORE_COUNT">
+            <summary>
+            Default maximum multiplicity
+            </summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.PK0506_SEARCH_BUF_SIZE">
+            <summary>
+            EndOfCentralDirectory(PK0506) buffer size for search
+            </summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.centralDirectoryList">
+            <summary>archive file list</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.defaultZipTextEncoding">
+            <summary>ZIP archive and password encoding</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.defaultPassword">
+            <summary>Password used to decrypt password-protected files</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.unzipTempStream">
+            <summary>Holds input information</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.inprocFile">
+            <summary>File in process</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.ZipFileNameEncoding">
+            <summary>
+            File name and password encoding  Default:(<see cref="P:System.Globalization.CultureInfo.CurrentUICulture"/>)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.Password">
+            <summary>
+            Password used to decrypt archives
+            <para>Specify if encrypted ZIP</para>
+            </summary>
+            <value></value>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.GetFileList">
+            <summary>
+            Get list of files in archive
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.DecompressionProcs">
+            <summary>
+            Number of decompress processes running
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.InProcessFilename">
+            <summary>
+            Get files in process<br />
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CommentBytes">
+            <summary>
+            Comment(bytes)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.Comment">
+            <summary>
+            Comment(string)
+            </summary>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.IO.Stream,System.String)">
+            <summary>
+            constructor
+            </summary>
+            <param name="zipStream">ZIP archive stream</param>
+            <param name="tempDirPath"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.Byte[])">
+            <summary>
+            constructor
+            </summary>
+            <param name="zipByts">Byte array of ZIP archive</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.String)">
+            <summary>
+            constructor
+            </summary>
+            <param name="zipFilePath">ZIP archive path</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.IO.Stream,System.Int32,System.String)">
+            <summary>
+            constructor
+            </summary>
+            <param name="zipStream">ZIP archive stream</param>
+            <param name="semaphoreCount">Maximum multiplicity of compression process(if 0, <see cref="P:System.Environment.ProcessorCount" />)</param>
+            <param name="tempDirPath"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.Byte[],System.Int32)">
+            <summary>
+            constructor
+            </summary>
+            <param name="zipByts">Byte array of ZIP archive</param>
+            <param name="semaphoreCount">Maximum multiplicity of compression process(if 0, <see cref="P:System.Environment.ProcessorCount" />)</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.String,System.Int32)">
+            <summary>
+            constructor
+            </summary>
+            <param name="zipFilePath">ZIP archive path</param>
+            <param name="semaphoreCount">Maximum multiplicity of compression process(if 0, <see cref="P:System.Environment.ProcessorCount" />)</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.GetSemaphoreCount">
+            <summary>
+            Get default multiplicity
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:YGZipLib.UnZipArcClass.CentralDirectoryInfo">
+            <summary>
+            CentralDirectory information retention class
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.Position">
+            <summary>
+            CentralDirectory start position
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.LocalHeaderPos">
+            <summary>
+            LocalHeader start position
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.LocalHeader">
+            <summary>
+            Get Local Header
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.Crc32">
+            <summary>CRC32</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.Flag">
+            <summary>Flag</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CompressionMethod">
+            <summary>Comptype</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CompressionMethodOv">
+            <summary>Comptype</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ZipFileNameEncoding">
+            <summary>
+            Encoding of ZIP file name
+            If the UTF8 flag is set, use UTF8
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.FileName">
+            <summary>
+            file-name
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.FullName">
+            <summary>
+            File name including directory
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.DirectoryName">
+            <summary>
+            directory name
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CreateTimestamp">
+            <summary>
+            creation timestamp
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ModifyTimestamp">
+            <summary>
+            update timestamp
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.AccessTimestamp">
+            <summary>
+            access timestamp
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.FileSize">
+            <summary>
+            File size before storing
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CompFileSize">
+            <summary>
+            File size after storing
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.IsDirectory">
+            <summary>
+            directory flag
+            </summary>
+            <value></value>
+            <returns>True for directories</returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.IsEncryption">
+            <summary>
+            encryption flag
+            </summary>
+            <value></value>
+            <returns>True if encrypted</returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ToString">
+            <summary>
+            ToString
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ToString(System.Boolean)">
+            <summary>
+            ToString
+            </summary>
+            <param name="localHeader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.#ctor(System.Int64,YGZipLib.Common.ZipHeader.PK0102Info,System.Text.Encoding,YGZipLib.Streams.UnzipTemp)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="pos"></param>
+            <param name="centralDirectory"></param>
+            <param name="enc"></param>
+            <param name="unzipTempStream"></param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetStream">
+            <summary>
+            Get a stream of stored files
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.UtfEncoding">
+            <summary>
+            File name is UTF8 encoded
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ExtraFields">
+            <summary>
+            Get ExtraDataField(CentralDirectory)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.LocalExtraFields">
+            <summary>
+            Get ExtraDataField(LocalHeader)
+            </summary>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetNtfsDataExtraField">
+            <summary>
+            Get ExtraField of NTFS time information
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetExtendedTimestamp">
+            <summary>
+            Get ExtendedTimestamp
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetAesExtraData">
+            <summary>
+            Get ExtraField for AES encryption
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetZip64ExtraData">
+            <summary>
+            Get ZIP64ExtraData
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetUnicodePathExtraData(System.String,System.Byte[])">
+            <summary>
+            Get UnicodePathExtraData
+            </summary>
+            <param name="headerFileName"></param>
+            <param name="headerFileNameb"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String)">
+            <summary>
+            1 file output
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">Destination file path</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String,System.String)">
+            <summary>
+            1 file output
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">Destination file path</param>
+            <param name="password">password</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String,System.Threading.CancellationToken)">
+            <summary>
+            1 file output
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">Destination file path</param>
+            <param name="cancelToken">cancellation token</param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            1 file output
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">Destination file path</param>
+            <param name="password">password</param>
+            <param name="cancelToken">cancellation token</param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.FileInfo,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Getting a file (output to file)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="fileInfo">FileInfo of the destination file</param>
+            <param name="password">password</param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream)">
+            <summary>
+            Getting a file (output to file)
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outStream">destination stream</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.String)">
+            <summary>
+            Getting a file (output to file)
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outStream">destination stream</param>
+            <param name="password">password</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Getting a file (output to file)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="outStream">destination stream</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Getting a file (output to file)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="outStream">destination stream</param>
+            <param name="password">password</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFiles(System.IO.DirectoryInfo)">
+            <summary>
+            Unzip the archive to the specified directory
+            </summary>
+            <param name="outputDirectory">Output directory (create if none exists)</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFiles(System.IO.DirectoryInfo,System.String)">
+            <summary>
+            Unzip the archive to the specified directory
+            </summary>
+            <param name="outputDirectory">Output directory (create if none exists)</param>
+            <param name="password">パスワード</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFilesAsync(System.IO.DirectoryInfo,System.Threading.CancellationToken)">
+            <summary>
+            Unzip the archive to the specified directory
+            </summary>
+            <param name="outputDirectory">output directory</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFilesAsync(System.IO.DirectoryInfo,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unzip the archive to the specified directory
+            </summary>
+            <param name="outputDirectory">output directory</param>
+            <param name="password">password</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CheckCentralDirectory(System.Collections.Generic.List{YGZipLib.UnZipArcClass.CentralDirectoryInfo})">
+            <summary>
+            CheckCentralDirectory
+            </summary>
+            <param name="centralDirectories"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ToString">
+            <summary>
+            ToString
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CheckDirectory(System.IO.DirectoryInfo,YGZipLib.UnZipArcClass.CentralDirectoryInfo)">
+            <summary>
+            Validity check of output directory
+            </summary>
+            <param name="outputDirectory"></param>
+            <param name="centralDirectory"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.DecryptionStreamAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,YGZipLib.Streams.InputStream,System.String,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Decryption stream setting
+            </summary>
+            <param name="centralDirectory"></param>
+            <param name="compDataStream"></param>
+            <param name="password"></param>
+            <param name="outputStream"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.DecompressStreamAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Unzip Stream Settings
+            </summary>
+            <param name="centralDirectory"></param>
+            <param name="compDataStream"></param>
+            <param name="outputStream"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.StreamWriteAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Stream output
+            </summary>
+            <param name="centralDirectory"></param>
+            <param name="readStream"></param>
+            <param name="outputStream"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.GetCentralDirectory">
+            <summary>
+            Retrieve CentralDirectory and store it in the list
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.FindEndOfCentralDirectory(System.IO.Stream)">
+            <summary>
+            Get the location of EndOfCentralDDirectory(PK0506)
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.FindZip64EndOfCentralDirectory(System.Int64,System.IO.Stream)">
+            <summary>
+            Get location of Zip64 end of central directory record
+            </summary>
+            <param name="pk0506pos"></param>
+            <param name="zipStream"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.Dispose(System.Boolean)">
+            <summary>
+            Dispose
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass">
+            <summary>
+            ZIP archive creation class
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass.StoreTimestampOption">
+            <summary>
+            Timestamp to store
+            </summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.DosOnly">
+            <summary></summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.Ntfs">
+            <summary>NTFS Timestamp(default)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.ExtendedTimestamp">
+            <summary>extended timestamp</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.NtfsAndExtendedTimestamp">
+            <summary>Both NTFS Timestamp and extended timestamp</summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass.COMPRESSION_OPTION">
+            <summary>
+            Compression Option
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.NOT_COMPRESSED">
+            <summary>uncompressed</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.DEFLATE">
+            <summary>Deflate Compression</summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass.ENCRYPTION_OPTION">
+            <summary>
+            encryption method
+            </summary>
+            <remarks>
+            Specifies the encryption method to be used if <see cref="P:YGZipLib.ZipArcClass.Password">Password</see> is specified.
+            </remarks>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.TRADITIONAL">
+            <summary>ZIP2.0(Traditional PKWARE Encryption)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.AES128">
+            <summary>AES 128bit(WinZIP Compatible)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.AES192">
+            <summary>AES 192bit(WinZIP Compatible)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.AES256">
+            <summary>AES 256bit(WinZIP Compatible)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0102">
+            <summary>CentralFileHeaderSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0304">
+            <summary>LocalFileHeaderSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0506">
+            <summary>EndOfCentralDirectorySignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0606">
+            <summary>Zip64EndOfCentralDirectorySignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0607">
+            <summary>Zip64EndOfCentralDirectoryLocatorSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0708">
+            <summary>DataDescriptorHeaderSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.HDR_MADEVER">
+            <summary>CentralDirectry made ver</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.MAX_SEMAPHORE_COUNT">
+            <summary>
+            Default Maximum Multiplicity
+            Compression/encryption is executed in parallel, but writing to the ZIP archive is a single multiplex, so raising the number too high will not shorten the total time that much.
+            </summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.baseStream">
+            <summary>Stream for Zip archive output</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.baseFileStream">
+            <summary>File stream for Zip archive output (used when outputting to zip file)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.partInfoList">
+            <summary>List for storing PartInfo</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.dirDic">
+            <summary>Directory dictionary (name of stored directory)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.dirDicOrg">
+            <summary>Directory dictionary (input directory)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.filenameEncoding">
+            <summary>File name and password encoding</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.isFinished">
+            <summary>Finish executed decision</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.tsm">
+            <summary>TemporaryStream</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.dirSplitChars">
+            <summary>directory delimiter</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.isStreamDispose">
+            <summary>Flag whether the stream needs to be destroyed</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.addZipSemaphore">
+            <summary>Semaphore for controlling the number of simultaneous processes</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.semaphoreCount">
+            <summary>Number of semaphores</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.inprocFile">
+            <summary>File in process</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.directoryEntories">
+            <summary>Number of central directory entries</summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.Password">
+            <summary>
+            password  Default:null
+            <para>If null, no encryption</para>
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.CompressionOption">
+            <summary>
+            Compression Option  Default:<see cref="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.DEFLATE" />
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.EncryptionOption">
+            <summary>
+            encryption method(Default:TRADITIONAL)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.CompressionLevel">
+            <summary>
+            <see cref="T:System.IO.Compression.CompressionLevel"/>
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreTimestamp">
+            <summary>
+            Timestamp to store(Default:<see cref="F:YGZipLib.ZipArcClass.StoreTimestampOption.Ntfs"/>)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.ZipFileNameEncoding">
+            <summary>
+            File name and password encoding  Default:<see cref="P:System.Globalization.CultureInfo.CurrentUICulture"/>
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreUtf8Filename">
+            <summary>
+            Output UTF-8 filename when <see cref="P:YGZipLib.ZipArcClass.ZipFileNameEncoding"/>  is not UTF-8
+            <para>Outputs Info-ZIP Unicode Path Extra Field (0x7075).</para>
+            </summary>
+            <remarks>
+            zip仕様書(APPNOTE)だとpk0102/pk0304のファイルネームがUTF8の場合はExtraDataFieldを作成すべきでは無い(should not)。
+            flagのbit11(Language encoding flag EFS))==trueを設定しておけとある。そのためZipFileNameEncodingがUTF8の場合はこのフラグを無視する。
+            </remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.DontCompressExtRegExList">
+            <summary>
+            Pattern list of extensions to be stored as is without compression
+            <para>Specify extensions to be stored without compression using regular expressions</para>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.Comment">
+            <summary>
+            Comment
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreDirectories">
+            <summary>
+            Store directories
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.ZipFileCount">
+            <summary>
+            Total number of files and directories stored in the ZIP archive
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.ZipFileSize">
+            <summary>
+            Output ZIP archive size
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.WriteQueueCount">
+            <summary>
+            Number of waiting cases for writing to the ZIP file
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.CompressionProcs">
+            <summary>
+            Number of running compression processes
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.InProcessFilename">
+            <summary>
+            Get file in process<br />
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.TotalFileCount">
+            <summary>
+            Total file count
+            </summary>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.IO.Stream)">
+            <summary>
+            constructor 
+            </summary>
+            <param name="writeStream">
+            ZIP archive output stream
+            </param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.String)">
+            <summary>
+            constructor 
+            </summary>
+            <param name="zipFileName">Output ZIP file name (existing files will be overwritten)</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.String,System.Int32,System.String)">
+            <summary>
+            constructor (multiplicity, TemporaryDirectory specified)
+            </summary>
+            <param name="zipFileName">Output ZIP file name (existing files will be overwritten)</param>
+            <param name="semaphoreCount">Compression Processing Maximum Multiplicity(If 0, <see cref="P:System.Environment.ProcessorCount" />)</param>
+            <param name="tempDirPath">Path of TemporaryFile creation directory(If null, obtained from <see cref="M:System.IO.Path.GetTempPath" />)</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.IO.Stream,System.Int32,System.String)">
+            <summary>
+            constructor (multiplicity, TemporaryDirectory specified)
+            </summary>
+            <param name="writeStream">ZIP archive output stream</param>
+            <param name="semaphoreCount">Compression Processing Maximum Multiplicity(If 0, <see cref="P:System.Environment.ProcessorCount" />)</param>
+            <param name="tempDirPath">Path of TemporaryFile creation directory(If null, obtained from <see cref="M:System.IO.Path.GetTempPath" />)</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Init(System.IO.Stream,System.String)">
+            <summary>
+            initialization
+            </summary>
+            <param name="st"></param>
+            <param name="tempDirPath"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectory(System.String)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="storeDirectoryName">Directory name to add</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectoryAsync(System.String)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="storeDirectoryName">Directory name to add</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectory(System.String,System.DateTime)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="storeDirectoryName">Directory name to add</param>
+            <param name="timeStamp">Directory timestamp</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectoryAsync(System.String,System.DateTime)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="storeDirectoryName">Directory name to add</param>
+            <param name="timeStamp">Directory timestamp</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectory(System.String,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="storeDirectoryName">Directory name to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="lastAccessTimeStamp">access timestamp</param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectoryAsync(System.String,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="storeDirectoryName">Directory name to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="lastAccessTimeStamp">access timestamp</param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectory(System.String)">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String)">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectory(System.String,System.String)">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <param name="baseDir">Create baseDir in the archive and store the directory structure under it.</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String)">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <param name="baseDir">Create baseDir in the archive and store the directory structure under it.</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <param name="baseDir">Create baseDir in the archive and store the directory structure under it.</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectory(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex})">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <param name="baseDir">Create baseDir in the archive and store the directory structure under it.</param>
+            <param name="excludeFileNameList">Regular expression list of file names to be excluded from storage</param>
+            <param name="excludeDirectoryNameList">Regular expression list of directory names to be excluded from storage</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex})">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <param name="baseDir">Create baseDir in the archive and store the directory structure under it.</param>
+            <param name="excludeFileNameList">Regular expression list of file names to be excluded from storage</param>
+            <param name="excludeDirectoryNameList">Regular expression list of directory names to be excluded from storage</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Threading.CancellationToken)">
+            <summary>
+            Store all files under the specified directory in the archive
+            </summary>
+            <param name="dirPath">Path of directory to store</param>
+            <param name="baseDir">Create baseDir in the archive and store the directory structure under it.</param>
+            <param name="excludeFileNameList">Regular expression list of file names to be excluded from storage</param>
+            <param name="excludeDirectoryNameList">Regular expression list of directory names to be excluded from storage</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStream(System.String,System.IO.Stream)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStream(System.String,System.IO.Stream,System.DateTime)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="timeStamp">timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="timeStamp">timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="timeStamp">timestamp</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddStreamFile(System.String,System.IO.Stream,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="fileAccessTimeStamp">access timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="fileAccessTimeStamp">access timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime,System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Adding files (Stream)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="storeStream">Stream to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="fileAccessTimeStamp">access timestamp</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytes(System.String,System.Byte[])">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[])">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytes(System.String,System.Byte[],System.DateTime)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="timeStamp">timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="timeStamp">timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="timeStamp">timestamp</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytes(System.String,System.Byte[],System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="fileAccessTimeStamp">access timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="fileAccessTimeStamp">access timestamp</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime,System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Adds a file (byte array)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update timestamp</param>
+            <param name="fileAccessTimeStamp">access timestamp</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePath(System.String)">
+            <summary>
+            Add a file (file name)
+            </summary>
+            <param name="filePath">Path of the file to be added</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String)">
+            <summary>
+            Add a file (file name)
+            </summary>
+            <param name="filePath">Path of the file to be added</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Add a file (file name)
+            </summary>
+            <param name="filePath">Path of the file to be added</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePath(System.String,System.String)">
+            <summary>
+            Add a file (file name)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="filePath">Path of the file to be added</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String,System.String)">
+            <summary>
+            Add a file (file name)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="filePath">Path of the file to be added</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Add a file (file name)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="filePath">Path of the file to be added</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfo(System.IO.FileInfo)">
+            <summary>
+            Add a file (FileInfo)
+            </summary>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.IO.FileInfo)">
+            <summary>
+            Add a file (FileInfo)
+            </summary>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.IO.FileInfo,System.Threading.CancellationToken)">
+            <summary>
+            Add a file (FileInfo)
+            </summary>
+            <param name="fileInfo">FileInfo</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfo(System.String,System.IO.FileInfo)">
+            <summary>
+            Add a file (FileInfo)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.String,System.IO.FileInfo)">
+            <summary>
+            Add a file (FileInfo)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.String,System.IO.FileInfo,System.Threading.CancellationToken)">
+            <summary>
+            Add a file (FileInfo)
+            </summary>
+            <param name="storeFileName">stored file name</param>
+            <param name="fileInfo">FileInfo</param>
+            <param name="cancelToken">cancellation token</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Finish">
+            <summary>
+            Finish creating the ZIP archive
+            <para>Must be called at the end of ZIP archive creation. If outputting to a file, close the output file.</para>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.FinishAsync">
+            <summary>
+            Finish creating the ZIP archive
+            <para>Must be called at the end of ZIP archive creation. If outputting to a file, close the output file.</para>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.FinishAsync(System.Threading.CancellationToken)">
+            <summary>
+            Finish creating the ZIP archive
+            <para>Must be called at the end of ZIP archive creation. If outputting to a file, close the output file.</para>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPK0506(System.Int64,System.Int64)">
+            <summary>
+            PK0506(EndOfCentralDirectory) edit
+            </summary>
+            <param name="centralDirPos"></param>
+            <param name="centralDirLength"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.GetSemaphoreCount">
+            <summary>
+            Get default multiplicity
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecuriveAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Threading.CancellationToken)">
+            <summary>
+            Add directories recursively to the archive
+            </summary>
+            <param name="baseDir">Parent directory to be stored in the archive</param>
+            <param name="dirPath">File or directory to store</param>
+            <param name="excludeDirectoryNameList">Regular expression list of directories to be excluded from storage (the directories below the matching directory are excluded from storage)</param>
+            <param name="excludeFileNameList">Regular expression list of files to be excluded from storage</param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecuriveMainAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Add directories recursively to the archive
+            </summary>
+            <param name="baseDir"></param>
+            <param name="dirPath"></param>
+            <param name="excludeFileNameList"></param>
+            <param name="excludeDirectoryNameList"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectory(System.String,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="directoryName">Directory name to be added</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update filestamp</param>
+            <param name="lastAccessTimeStamp">access timestamp</param>
+            <param name="cancelToken"></param>
+            <param name="abort"></param>
+            <param name="store"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectorySub(System.String,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Add an empty directory
+            </summary>
+            <param name="directoryName">Directory name to be added</param>
+            <param name="creationTimeStamp">creation timestamp</param>
+            <param name="lastWriteTimeStamp">update filestamp</param>
+            <param name="lastAccessTimeStamp">access timestamp</param>
+            <param name="cancelToken"></param>
+            <param name="abort"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsync(System.String,System.IO.FileInfo,System.String,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Add a file to the archive (FileInfo)
+            </summary>
+            <param name="fileName">file-name</param>
+            <param name="fi">FileInfo</param>
+            <param name="password">password(If null, no encryption)</param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp">creation timestamp</param>
+            <param name="fileModifyTimestamp">update timestamp</param>
+            <param name="fileAccessTimestamp">access timestamp</param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsync(System.String,System.Byte[],System.String,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Adds a file to the archive (Byte array)
+            </summary>
+            <param name="fileName">file-name</param>
+            <param name="byteData">Byte array to add</param>
+            <param name="password">password(If null, no encryption)</param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp">creation timestamp</param>
+            <param name="fileModifyTimestamp">update timestamp</param>
+            <param name="fileAccessTimestamp">access timestamp</param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsync(System.String,System.IO.Stream,System.String,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Adds a file to the archive (FileStream)
+            </summary>
+            <param name="fileName">file-name</param>
+            <param name="fileStream">Stream of files to be added</param>
+            <param name="password">password(If null, no encryption)</param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp">creation timestamp</param>
+            <param name="fileModifyTimestamp">update timestamp</param>
+            <param name="fileAccessTimestamp">access timestamp</param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPartInfo(System.String,System.String,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            PartInfo Editing
+            </summary>
+            <param name="fileName"></param>
+            <param name="password"></param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp"></param>
+            <param name="fileModifyTimestamp"></param>
+            <param name="fileAccessTimestamp"></param>
+            <param name="cancelToken"></param>
+            <param name="abort"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectorySub(YGZipLib.Common.PartInfoClass,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Individual directory creation sub for ZIP archives
+            </summary>
+            <param name="partInfo"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsyncSubAsync(YGZipLib.Common.PartInfoClass,System.IO.Stream,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Individual file creation sub for ZIP archives (for files)
+            </summary>
+            <param name="partInfo"></param>
+            <param name="fileStream"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.WriteTempStreamAsync(System.IO.Stream,System.IO.Stream,YGZipLib.Common.PartInfoClass,System.Threading.CancellationToken)">
+            <summary>
+            Compress and output a single file into a temporary stream
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditExtraData(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            ExtraData edit
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditZip64ExtraData(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            Edit Zip64ExtraDataInfo
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPK0102(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            Central Directory Editing
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPK0304(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            Local File Header Editing
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddQueue(YGZipLib.Common.PartInfoClass,System.IO.Stream,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Add export queue to base stream
+            </summary>
+            <param name="partInfo"></param>
+            <param name="stream"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.WriteBaseStreamAsync(YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronous write to BASE stream
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Dispose(System.Boolean)">
+            <summary>
+            Dispose
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
+    </members>
+</doc>

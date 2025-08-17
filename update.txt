@@ -1,0 +1,81 @@
+﻿ver 1.0.26
+ - セントラルディレクトリを依頼順に格納するオプション追加
+
+ver 1.0.25
+ - Unzip時にCentraldirectoryが見つからない場合ファイルがロックされたままとなるバグ修正
+ - AES暗号化処理時に.NET 8以降の場合Vector128/256/512を利用するように変更
+
+ver 1.0.24
+ - AES暗号化非同期処理修正
+
+ver 1.0.23
+ - ディレクトリ名のInfo-ZIP Unicode Path Extra Field (0x7075)が正しく作成されないバグ修正
+
+ver 1.0.22
+ - 4Gを超えるZIPファイルが他のアプリケーションで解凍できない場合があるバグ修正(3)
+
+ver 1.0.21
+ - 4Gを超えるZIPファイルが他のアプリケーションで解凍できない場合があるバグ修正(2)
+ - 圧縮後サイズが4Gを超えるファイルが展開できないバグ修正
+
+ver 1.0.20
+ - AESの復号化に失敗することがあるバグ修正
+ - 4Gを超えるZIPファイルが他のアプリケーションで解凍できない場合があるバグ修正
+
+ver 1.0.19
+ - Info-ZIP Unicode Path Extra Field (0x7075)に対応
+ - private非同期メソッドのzipファイル出力(WriteBaseStreamAsync)がエラーとなった場合にpublicメソッドで例外をThrowするように修正
+ - 0byteの入力ファイルはdeflate圧縮しないように修正
+
+ver 1.0.18
+ - デフォルトのコードページを CultureInfo.CurrentUICulture.TextInfo.ANSICodePage から取得する様に変更
+ - AES処理改善
+
+ver 1.0.17
+ - deflate64 support ended
+ - Zip64 Extra Information FieldのHeader Offset設定誤り修正
+ - 非同期処理改善
+
+ver 1.0.16
+ - ExtractAllFiles時の一時ファイルクローズ漏れ修正
+
+ver 1.0.15
+ - ZIPファイルのサイズが4Gを超えた場合にZip64 Extra Field(0x0001)のLocalHeaderOffsetが正しく設定されないバグ修正
+ - ディレクトリエントリを格納しないプロパティ追加
+ - extended timestamp対応
+
+ver 1.0.14
+ - Comment設定に対応
+
+ver 1.0.13
+ - AddDirectory/AddDirectoryAsync処理改善
+ - unzip時にテンポラリファイル作成ディレクトリを指定できるように修正 
+
+ver 1.0.12
+ - 処理改善
+
+ver 1.0.11
+ - ドキュメント修正
+
+ver 1.0.10
+ - Package作成誤り
+
+ver 1.0.9
+ - ディレクトリ名・ファイル名に不正な文字が含まれていた場合、'-'に置換する
+
+ver 1.0.8
+ - .net standard/coreではRNGCryptoServiceProviderではなく、RandomNumberGeneratorを使用するように変更
+ - BitInputStreamのバッファサイズ調整
+ 
+ver 1.0.7
+ - FinishAsyncで非同期メソッドを使用するように修正
+ - ZipArcClass.AddDirectory/UnZipArcClass.ExtractAllFilesで、Exceptionが発生した場合、未起動タスクの実行を行わないように修正
+
+ver 1.0.6 2022/04/19
+ - 展開のみDeflate64に対応
+ - GetFileListで返却されるリストをCentralDirectory格納順に修正
+
+ver 1.0.5 2022/04/17
+ - バイト配列の追加時にExceptionが発生するBug修正
+ - CancellationToken設定漏れ修正
+

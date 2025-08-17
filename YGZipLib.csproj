@@ -1,0 +1,101 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>YGZipLib</RootNamespace>
+    <TargetFrameworks>net6.0;net8.0;netstandard2.0;netstandard2.1;net46;net481</TargetFrameworks>
+    <PackageId>YGZipLib</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>1.0.26</Version>
+    <Authors>Ryoji Kikuchi</Authors>
+    <Company>Ryoji Kikuchi</Company>
+    <Title>YG Zip Libraly</Title>
+    <Copyright>Ryoji Kikuchi</Copyright>
+    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <OptionStrict>On</OptionStrict>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.*</AssemblyVersion>
+    <FileVersion>1.0.26.0</FileVersion>
+    <Description>YGZipLib is a compression/decompression library for ZIP archives. Features: multiprocessing, AES encryption, async, multilanguage</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>zip;aes;multiprocess;async;utf8</PackageTags>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PackageProjectUrl>https://github.com/RyojiKikuchi/YGZipLib</PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>YGZipLib.xml</DocumentationFile>
+    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
+    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NoWarn>IDE0017;IDE0090;IDE0066;IDE0057;IDE0063;IDE0074;IDE0028;IDE0300;IDE0301;IDE0305;IDE0230;IDE0290;SYSLIB1045</NoWarn>
+    <DebugType>embedded</DebugType>
+    <Deterministic>False</Deterministic>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
+    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>false</DefineTrace>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <NoWarn>IDE0017;IDE0090;IDE0066;IDE0057;IDE0063;IDE0074;IDE0028;IDE0300;IDE0301;IDE0305;IDE0230;IDE0290;SYSLIB1045</NoWarn>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <Deterministic>False</Deterministic>
+    <Optimize>true</Optimize>
+    <WarningLevel>5</WarningLevel>
+  </PropertyGroup>
+
+<ItemGroup Condition="Exists('def64')">
+  <None Include="docs\current\readme_def64\README.md" Pack="True" PackagePath="\" />
+  <None Include="docs\current\readme_def64\README-ja.md" Pack="True" PackagePath="\" />
+  <None Include="docs\current\readme_def64\LICENSE.txt" Pack="true" PackagePath="\" />
+</ItemGroup>
+<ItemGroup Condition="!Exists('def64')">
+  <None Include="docs\current\readme\README.md" Pack="True" PackagePath="\" />
+  <None Include="docs\current\readme\README-ja.md" Pack="True" PackagePath="\" />
+  <None Include="docs\current\readme\LICENSE.txt" Pack="true" PackagePath="\" />
+</ItemGroup>
+
+<ItemGroup>
+  <None Include="update.txt" Pack="true" PackagePath="\" />
+
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\netstandard2.0" />
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\netstandard2.0\en" />
+  <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\netstandard2.0\ja" />
+
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\netstandard2.1" />
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\netstandard2.1\en" />
+  <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\netstandard2.1\ja" />
+
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net46" />
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net46\en" />
+  <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\net46\ja" />
+
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net481" />
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net481\en" />
+  <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\net481\ja" />
+
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net6.0" />
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net6.0\en" />
+  <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\net6.0\ja" />
+
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net8.0" />
+  <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net8.0\en" />
+  <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\net8.0\ja" />
+
+</ItemGroup>
+
+<ItemGroup>
+  <Folder Include="def64\" />
+</ItemGroup>
+
+
+</Project>

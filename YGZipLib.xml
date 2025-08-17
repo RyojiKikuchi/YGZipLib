@@ -1,0 +1,2280 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>YGZipLib</name>
+    </assembly>
+    <members>
+        <member name="T:YGZipLib.Common.PartInfoClass">
+            <summary>PartInfoClass</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Id">
+            <summary>ID</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileName">
+            <summary>ファイル名</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileCreateTimeStamp">
+            <summary>格納ファイルの作成タイムスタンプ</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileModifyTimeStamp">
+            <summary>格納ファイルの更新タイムスタンプ</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileAccessTimeStamp">
+            <summary>格納ファイルのアクセスタイムスタンプ</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.FileAttribute">
+            <summary>ファイル属性</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.CompressionOption">
+            <summary>圧縮オプション</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.CompressionLevel">
+            <summary>圧縮レベル</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.EncryptionOption">
+            <summary>暗号化オプション</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Password">
+            <summary>暗号化パスワード</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0102Header">
+            <summary>PK0102Header</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0304HeaderPos">
+            <summary>PK0304Header位置</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0304Header">
+            <summary>PK0304Header</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Pk0708Header">
+            <summary>PK0708Header</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.NtfsTimestampExtraData">
+            <summary>NTFS TimeStamp ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.ExtendedTimestampExtraData">
+            <summary>Extended TimeStamp ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.AesExtraData">
+            <summary>AES ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.Zip64ExtraData">
+            <summary>Zip64 ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.UnicodePathExtraData">
+            <summary>Unicode Path ExtraData</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.WriteDataDescriptor">
+            <summary>DataDescriptor(PK0708)を出力する</summary>
+        </member>
+        <member name="P:YGZipLib.Common.PartInfoClass.IsDirectory">
+            <summary>ディレクトリであることを表す</summary>
+        </member>
+        <member name="T:YGZipLib.Common.ShareMethodClass">
+            <summary>共有メソッドクラス</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.defaultAnsiCodepage">
+            <summary>システム規定のANSIコードページ</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.defaultReplacementString">
+            <summary>システム規定の置換文字列</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.invFileNameChars">
+            <summary>ファイル名として使用不可能な文字</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.invPathNameChars">
+            <summary>ディレクトリ名として使用不可能な文字</summary>
+        </member>
+        <member name="F:YGZipLib.Common.ShareMethodClass.crcTable">
+            <summary>CRC32Table</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.#cctor">
+            <summary>静的コンストラクタ</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.StreamReadBuffer(System.IO.Stream,System.Byte[])">
+            <summary>
+            ストリームから指定されたバッファ長分読み込む。途中でストリームの終わりになった場合、例外が発生する。
+            </summary>
+            <param name="st"></param>
+            <param name="buffer"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodeDosFileDate(System.DateTime)">
+            <summary>
+            DOS形式の日付編集
+            </summary>
+            <param name="fileTime"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodeDosFileTime(System.DateTime)">
+            <summary>
+            DOS形式の日付編集
+            </summary>
+            <param name="fileTimeStamp"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.DecodeDosFileDateTime(System.UInt16,System.UInt16)">
+            <summary>
+            DOS形式の日付をDateTime型に変換
+            </summary>
+            <param name="fileDate"></param>
+            <param name="fileTime"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CopyCrcTable(System.UInt32*)">
+            <summary>
+            CRCテーブルコピー
+            </summary>
+            <param name="destCrc"></param>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayCompare(System.Byte[],System.Byte[])">
+            <summary>
+            バイト配列が等しいかチェックする
+            </summary>
+            <param name="byteArray1"></param>
+            <param name="byteArray2"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.Common.ShareMethodClass.AnsiEncoding">
+            <summary>
+            システム規定のANSIエンコーディング
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.Common.ShareMethodClass.Utf8Encoding">
+            <summary>
+            UTF-8のエンコーディング(codepage=65001)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Common.ShareMethodClass.AsciiEncoding">
+            <summary>
+            US-ASCII(codepage=20127)
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGetBytes(System.String,System.Text.Encoding)">
+            <summary>StringをByte配列に変換する(スレッドセーフ)</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGetString(System.Byte[],System.Text.Encoding)">
+            <summary>Byte配列をStringに変換する(スレッドセーフ)</summary>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.EncodingGet(System.Text.Encoding,System.String@,System.Byte[]@)">
+            <summary>
+            EncodingのGetString,GetBytesをスレッドセーフにするためのメソッド
+            </summary>
+            <param name="enc"></param>
+            <param name="text"></param>
+            <param name="byteArray"></param>
+            <remarks><see cref="M:YGZipLib.Common.ShareMethodClass.EncodingGetBytes(System.String,System.Text.Encoding)"/>または<see cref="M:YGZipLib.Common.ShareMethodClass.EncodingGetString(System.Byte[],System.Text.Encoding)"/>から呼び出される。</remarks>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayToHex(System.Byte[])">
+            <summary>
+            byte配列を文字列に変換
+            </summary>
+            <param name="bytes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.ByteArrayToHex(System.Byte[],System.Boolean)">
+            <summary>
+            byte配列を文字列に変換
+            </summary>
+            <param name="bytes"></param>
+            <param name="separator">区切り文字を入れるか</param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckPathName(System.String)">
+            <summary>
+            ディレクトリ名に使用不可文字が含まれていないかチェックする
+            </summary>
+            <param name="pathName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckFileName(System.String)">
+            <summary>
+            ファイル名に使用不可文字が含まれていないかチェックする
+            </summary>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckDirectories(YGZipLib.UnZipArcClass,System.Collections.Generic.List{YGZipLib.UnZipArcClass.CentralDirectoryInfo})">
+            <summary>
+            セントラルディレクトリのチェック
+            </summary>
+            <param name="unzip"></param>
+            <param name="cds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.CheckDirectory(YGZipLib.UnZipArcClass,YGZipLib.UnZipArcClass.CentralDirectoryInfo)">
+            <summary>
+            セントラルディレクトリの1エントリチェック
+            </summary>
+            <param name="unzip"></param>
+            <param name="cd"></param>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="M:YGZipLib.Common.ShareMethodClass.GetTempFileName(System.String)">
+            <summary>テンポラリファイル名取得</summary>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0102Info">
+            <summary>
+            CentralDirectory(PK0102)クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0304Info">
+            <summary>
+            LocalHeader(PK0304)クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0506Info">
+            <summary>
+            EndOfCentralDirectory(PK0506)クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0606Info">
+            <summary>
+            Zip64EndOfCentralDirectory(PK0606)クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0607Info">
+            <summary>
+            Zip64EndOfCentralDirectoryLocator(PK0607)クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.PK0708Info">
+            <summary>
+            DataDescriptor(PK0708)クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.AesExtraDataInfo">
+            <summary>
+            AES extra data field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.NtfsDateExtraDataInfo">
+            <summary>
+            NTFS FileTimestamp Extra Data Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.Zip64ExtraDataInfo">
+            <summary>
+            Zip64 Extra Data Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.ExtendedTimestampInfo">
+            <summary>
+            Extended Timestamp Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Common.ZipHeader.UnicodePathExtraDataField">
+            <summary>
+            Info-ZIP Unicode Path Extra Field
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.BitInputStream">
+            <summary>
+            BitInputStream
+            Apache Commons Compress Release 1.21から移植
+            src/main/java/org/apache/commons/compress/utils
+              BitInputStream.java
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.BitInputStream.inSt">
+            <summary>入力ストリーム</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.BitInputStream.bitsCached">
+            <summary>出力キャッシュ</summary>
+            <remarks>.netではjavaにある符号無し右シフトがないので、unsignedとしている</remarks>
+        </member>
+        <member name="F:YGZipLib.Streams.BitInputStream.bitsCachedSize">
+            <summary>キャッシュしているビット数</summary>
+        </member>
+        <member name="T:YGZipLib.Streams.CalcCrc32Stream">
+            <summary>
+            CRC32算出クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.Streams.CalcCrc32Stream.Crc32">
+            <summary>
+            算出したCRC32取得
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.CalcCrc32Stream.#ctor(System.IO.Stream,YGZipLib.Streams.CalcCrc32Stream.StreamMode)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.CalcCrc32Stream.ResetCrc32">
+            <summary>
+            CRC32算出結果のリセット
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.Deflate64Stream">
+            <summary>
+            BitInputStream
+            Apache Commons Compress Release 1.21から移植
+            src/main/java/org/apache/commons/compress/compressors/deflate64
+              Deflate64CompressorInputStream.java
+              HuffmanDecoder.java
+              HuffmanState.java
+            </summary>
+        </member>
+        <member name="T:YGZipLib.Streams.InputStream">
+            <summary>
+            InputStream
+            元ストリームの指定範囲を独立したInputStreamのように取り扱えるStream
+            ※他から元ストリームのPositionを変更するような操作を行わないこと
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.#ctor(System.IO.Stream)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="inputStream"></param>
+            <remarks>
+            元となるストリーム全体をInputStreamとする
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.#ctor(System.IO.Stream,System.Int64)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="inputStream"></param>
+            <param name="inputLength"></param>
+            <remarks>
+            元となるストリームの現在位置から指定された長さ分をInputStreamとする
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.ReadBuffer(System.Byte[])">
+            <summary>
+            元ストリームから指定されたバッファ長分読み込む。途中でストリームの終わりになった場合、例外が発生する。
+            </summary>
+            <param name="buffer"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.InputStream.CheckBaseStream(System.IO.Stream)">
+            <summary>
+            元ストリームのチェック
+            </summary>
+            <param name="baseStream"></param>
+        </member>
+        <member name="T:YGZipLib.Streams.TempStreamManage">
+            <summary>
+            テンポラリストリーム管理クラス
+            </summary>
+            <remarks>
+            管理クラスをインポートしてGetTempStreamで<see cref="T:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream"/>を取得する
+            <see cref="T:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream"/>は使用終了後にClose/Disposeすること
+            </remarks>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.FILESTREAM_BUFFER_SIZE">
+            <summary>
+            ファイルストリームのバッファサイズ
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.lockObject">
+            <summary>
+            tempFileListをロックするためのオブジェクト
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.tempDirPath">
+            <summary>
+            一時ファイルのパス
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.tempFileList">
+            <summary>
+            TempFileStreamを管理するためのリスト
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Streams.TempStreamManage.TempFileStream.InUse">
+            <summary>
+            使用中
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream.tempStream">
+            <summary>
+            テンポラリストリーム
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream.MAX_MEMORY_STREAM_SIZE">
+            <summary>
+            MemoryStreamの最大サイズ。このサイズを超えるとファイルストリームに切り替える
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.AutoTemporaryStream.SwitchToFileStream">
+            <summary>
+            メモリストリームからファイルストリームに変更
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.GetTempFileStream">
+            <summary>
+            TemporaryFileStreamの取得
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.CloseTempFileStream(System.IO.Stream)">
+            <summary>
+            ストリームをクローズする
+            </summary>
+            <param name="st"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.TempStreamManage.DisposeAllStream">
+            <summary>
+            全ファイルストリームを開放する
+            </summary>
+        </member>
+        <member name="T:YGZipLib.Streams.UnzipTemp">
+            <summary>
+            UnZipをマルチスレッドで実行するためのストリーム管理クラス
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.UnzipTemp.TempStream.closed">
+            <summary>CloseStream の二重実行防止</summary>
+        </member>
+        <member name="T:YGZipLib.Streams.WriteCountStream">
+            <summary>
+            出力件数カウントストリーム
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream">
+            <summary>
+            ZIP AES暗号化クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.StreamMode">
+            <summary>
+            ストリームモード
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.StreamMode.ENCRYPT">
+            <summary>暗号化</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.StreamMode.DECRYPT">
+            <summary>復号化</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.MASK_SIZE">
+            <summary>最大のマスク配列サイズ(16の倍数で指定)</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AES_SALT_LENGTH">
+            <summary>SALT長定義</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AES_KEY_LENGTH">
+            <summary>KEY長定義</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.writeStream">
+            <summary>出力用Stream</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.readStream">
+            <summary>入力用Stream</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.totalReadCount">
+            <summary>読み込んだバイト数</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.calcHmac">
+            <summary>HMAC計算用</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.streamMode">
+            <summary>Streamモード</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskBytes">
+            <summary>暗号化用マスク配列</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskPosition">
+            <summary>マスク用配列ポインタ</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.aesMaskGenerator">
+            <summary>マスク作成タスク</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.#ctor(System.IO.Stream,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],YGZipLib.Streams.ZipAesCryptStream.StreamMode,System.Int64)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="baseStream"></param>
+            <param name="aesMode"></param>
+            <param name="password"></param>
+            <param name="streamMode"></param>
+            <param name="length"></param>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool">
+            <summary>
+            マスク配列作成スレッドプール
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.threadList">
+            <summary>マスク配列作成処理格納リスト</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.threadListLocker">
+            <summary>マスク配列作成処理格納リストロック</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.tm">
+            <summary>未使用スレッド回収タイマー</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.#cctor">
+            <summary>
+            コンストラクタ
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.GetGenerator">
+            <summary>
+            スレッド取得
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.Tm_Elapsed(System.Object,System.Timers.ElapsedEventArgs)">
+            <summary>
+            未使用スレッド回収タイマー発火
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.ReturnGenerator(YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator)">
+            <summary>
+            マスク生成取得
+            </summary>
+            <param name="generator"></param>
+            <exception cref="T:System.ArgumentOutOfRangeException"></exception>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.RemoveGenerator(YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator)">
+            <summary>
+            マスク生成返却
+            </summary>
+            <param name="generator"></param>
+            <remarks>
+            <seealso cref="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.CreateNextMask(System.Object)"/>の最後のfinally句から呼ばれる
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.DisposeUnuseGenerator(System.Int64)">
+            <summary>
+            未使用スレッド解放
+            </summary>
+            <param name="milliseconds"></param>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator">
+            <summary>
+            マスク配列作成
+            </summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.isCompleted">
+            <summary>処理終了</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.isError">
+            <summary>エラー発生</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskArray">
+            <summary>マスク配列</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskSelecter">
+            <summary>暗号化用マスクワークセレクター</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskCounter">
+            <summary>暗号化用マスクカウンター</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.plainArray">
+            <summary>暗号化用マスク作成用配列</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskArray0">
+            <summary>暗号化用マスクワーク1</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.maskArray1">
+            <summary>暗号化用マスクワーク2</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.aesCrypt">
+            <summary>AES</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.threadNo">
+            <summary>スレッド番号</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.threadNoLocker">
+            <summary>スレッド番号ロック</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.aesTrans">
+            <summary>AES暗号化/復号化</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.exception">
+            <summary>エラー情報</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.successEvent">
+            <summary>処理完了イベント</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.executeEvent">
+            <summary>実行待ちイベント</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.cancelSource">
+            <summary>マスク作成タスクキャンセル用</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.cancelToken">
+            <summary>マスク作成タスクキャンセル用</summary>
+        </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.createMaskThread">
+            <summary>マスク作成スレッド</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.LastUse">
+            <summary>最後に使用されたタイムスタンプ</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.InUse">
+            <summary>使用中フラグ</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.IsUnUsed">
+            <summary>未使用判定</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.#cctor">
+            <summary>
+            コンストラクタ
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.#ctor">
+            <summary>
+            コンストラクタ
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.SetAesKey(System.Byte[],System.Byte[])">
+            <summary>
+            AESキーをセットして内部状態をリセットする
+            </summary>
+            <param name="aesKey"></param>
+            <param name="aesIv"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.Start">
+            <summary>
+            マスク作成処理起動
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.GetMaskArray">
+            <summary>
+            マスク配列取得
+            </summary>
+            <returns></returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.CreateNextMask(System.Object)">
+            <summary>
+            次のマスク値を作成
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.InitKey(YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.Byte[],System.Byte[])">
+            <summary>
+            キー初期化
+            </summary>
+            <param name="aesMode">AESモード</param>
+            <param name="password">パスワード</param>
+            <param name="aesSalt"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.GetNextMask">
+            <summary>
+            次のマスク値を取得
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorMethodDelegate">
+            <summary>
+            AESマスク処理デリゲート
+            </summary>
+            <param name="alp">マスク対象配列アクセス用ポインタ</param>
+            <param name="mlp">マスク用配列アクセス用ポインタ</param>
+            <param name="count">マスクバイト数</param>
+            <param name="xorCount">xor処理済カウンタ</param>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.SetMaskByteArrayXorMethod">
+            <summary>
+            マスク配列処理メソッド設定
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector512(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector512(64Byte)でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector256(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector256(32Byte)でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector128(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector128でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAvx2(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Avx2でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAdvSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Avx2でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorNoSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Longでマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArray(System.Byte[],System.Int32,System.Int32)">
+            <summary>バイト配列にマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.CheckHash">
+            <summary>
+            Hashチェック
+            </summary>
+            <exception cref="T:System.Security.Cryptography.CryptographicException"></exception>
+        </member>
+        <member name="T:YGZipLib.Streams.ZipCryptStream">
+            <summary>
+            ZIP暗号化クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.#ctor(System.IO.Stream,System.Byte[],System.UInt32,YGZipLib.Streams.ZipCryptStream.StreamMode)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="baseStream">ベースストリーム</param>
+            <param name="password">パスワード</param>
+            <param name="crc32">暗号化前のCRC</param>
+            <param name="streamMode">暗号化or復号化</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.ZEncode(System.Byte)">
+            <summary>
+            1Byte暗号化する
+            </summary>
+            <param name="n">暗号化前のByte値</param>
+            <returns>暗号化後のByte値</returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.ZDecode(System.Byte)">
+            <summary>
+            1Byte復号化する
+            </summary>
+            <param name="n">復号化前のByte値</param>
+            <returns>復号化後のByte値</returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.UpdateKeys(System.Byte)">
+            <summary>
+            ZIP暗号化キー更新
+            </summary>
+            <param name="n"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.InitZipDecrypt(System.Byte[],System.UInt32)">
+            <summary>
+            ZIP暗号化初期化(復号化)
+            </summary>
+            <param name="password"></param>
+            <param name="crc32"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipCryptStream.InitZipEncrypt(System.Byte[],System.UInt32)">
+            <summary>
+            ZIP暗号化初期化(暗号化)
+            </summary>
+            <param name="password"></param>
+            <param name="crc32"></param>
+            <remarks></remarks>
+        </member>
+        <member name="T:YGZipLib.UnZipArcClass">
+            <summary>
+            ZIP書庫展開クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.MAX_SEMAPHORE_COUNT">
+            <summary>
+            デフォルトの最大の多重度
+            </summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.PK0506_SEARCH_BUF_SIZE">
+            <summary>
+            EndOfCentralDirectory(PK0506)検索用のバッファサイズ
+            </summary>
+            <remarks>ZIPコメント(65535)+EndOnCentralDirectory(22)+Omake(4)</remarks>
+        </member>
+        <member name="T:YGZipLib.UnZipArcClass.HeaderComptype">
+            <summary>Compression Method</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.centralDirectoryList">
+            <summary>書庫内ファイルリスト</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.defaultZipFileNameEncoding">
+            <summary>書庫およびパスワードのエンコーディング</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.defaultPassword">
+            <summary>パスワード付きファイルの復号に使用するパスワード</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.unzipTempStream">
+            <summary>ZIP書庫のストリーム</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.zipSemaphore">
+            <summary>起動プロセス数制御のためのSemaphore</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.semaphoreCount">
+            <summary>圧縮処理最大多重度</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.pk0506pos">
+            <summary>EndOfCentralDirectory(PK0506)の位置</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.pk0606pos">
+            <summary>EndOfCentralDirectory(PK0606)の位置</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.pk0506">
+            <summary>EndOfCentralDirectory(PK0506)情報</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.pk0606">
+            <summary>EndOfCentralDirectory(PK0606)情報</summary>
+        </member>
+        <member name="F:YGZipLib.UnZipArcClass.processingFiles">
+            <summary>処理中のファイル</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.ZipFileNameEncoding">
+            <summary>
+            ファイル名・パスワードのエンコーディング  Default:システム規定値(<see cref="P:System.Globalization.CultureInfo.CurrentUICulture"/>)
+            <para>この設定に係わらずUTF-8で格納されたファイル名は正しく展開できる。<br />
+            .NET Framework環境以外(例:.net Core)ではCodePagesEncodingProviderを登録しないとasciiとutf系しか利用できない。<br />
+            それ以外のコードページを使用する場合はCodePagesEncodingProviderをしておく。</para>
+            <code>
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            </code>
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.Password">
+            <summary>
+            書庫の復号に使用するパスワード
+            <para>暗号化ZIPの場合指定する</para>
+            </summary>
+            <value></value>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.FileList">
+            <summary>
+            書庫内のファイル一覧を取得
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.GetFileList">
+            <summary>
+            書庫内のファイル一覧を取得
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.DecompressionProcs">
+            <summary>
+            実行中の展開プロセス数
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.InProcessFilename">
+            <summary>
+            処理中のファイルを返却<br />
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CommentBytes">
+            <summary>
+            コメント(bytes)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.Comment">
+            <summary>
+            コメント(string)
+            </summary>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.IO.Stream,System.String)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="zipStream">ZIP書庫ストリーム</param>
+            <param name="tempDirPath">テンポラリファイルの作成ディレクトリ</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.Byte[])">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="zipByts">ZIP書庫のバイト配列</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.String)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="zipFilePath">ZIP書庫のパス</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.IO.Stream,System.Int32,System.String)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="zipStream">ZIP書庫ストリーム</param>
+            <param name="semaphoreCount">圧縮処理最大多重度(0の場合は<see cref="P:System.Environment.ProcessorCount" />)</param>
+            <param name="tempDirPath">テンポラリファイルの作成ディレクトリ</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.Byte[],System.Int32)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="zipByts">ZIP書庫のバイト配列</param>
+            <param name="semaphoreCount">圧縮処理最大多重度(0の場合は<see cref="P:System.Environment.ProcessorCount" />)</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.#ctor(System.String,System.Int32)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="zipFilePath">ZIP書庫のパス</param>
+            <param name="semaphoreCount">圧縮処理最大多重度(0の場合は<see cref="P:System.Environment.ProcessorCount" />)</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.GetSemaphoreCount">
+            <summary>
+            デフォルトの多重度取得
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:YGZipLib.UnZipArcClass.CentralDirectoryInfo">
+            <summary>
+            CentralDirectory情報保持クラス
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.Position">
+            <summary>
+            CentralDirectoryの開始位置
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.LocalHeaderPos">
+            <summary>
+            ローカルヘッダの開始位置
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.LocalHeader">
+            <summary>
+            ローカルヘッダ取得
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.Crc32">
+            <summary>CRC32</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.Flag">
+            <summary>Flag</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CompressionMethod">
+            <summary>Comptype</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CompressionMethodOv">
+            <summary>Comptype</summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ZipFileNameEncoding">
+            <summary>
+            ZIPファイル名のEncoding
+            UTF8のフラグがセットされていた場合はUTF8を使用する
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.FileName">
+            <summary>
+            ファイル名
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.FullName">
+            <summary>
+            ディレクトリを含むファイル名
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.DirectoryName">
+            <summary>
+            ディレクトリ名
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CreateTimestamp">
+            <summary>
+            作成タイムスタンプ
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ModifyTimestamp">
+            <summary>
+            更新タイムスタンプ
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.AccessTimestamp">
+            <summary>
+            アクセスタイムスタンプ
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.FileSize">
+            <summary>
+            格納前のファイルサイズ
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.CompFileSize">
+            <summary>
+            格納後のファイルサイズ
+            </summary>
+            <value></value>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.IsDirectory">
+            <summary>
+            ディレクトリフラグ
+            </summary>
+            <value></value>
+            <returns>ディレクトリの場合True</returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.IsEncryption">
+            <summary>
+            暗号化フラグ
+            </summary>
+            <value></value>
+            <returns>暗号化されている場合True</returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ToString">
+            <summary>
+            ToString
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ToString(System.Boolean)">
+            <summary>
+            ToString
+            </summary>
+            <param name="localHeader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.#ctor(System.Int64,YGZipLib.Common.ZipHeader.PK0102Info,System.Text.Encoding,YGZipLib.Streams.UnzipTemp)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="pos"></param>
+            <param name="centralDirectory"></param>
+            <param name="enc"></param>
+            <param name="unzipTempStream"></param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetStream">
+            <summary>
+            格納されているファイルのストリームを取得する
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.UtfEncoding">
+            <summary>
+            ファイル名がUTF8エンコードされている
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.ExtraFields">
+            <summary>
+            ExtraDataFieldを取得(CentralDirectory)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.UnZipArcClass.CentralDirectoryInfo.LocalExtraFields">
+            <summary>
+            ExtraDataFieldを取得(LocalHeader)
+            </summary>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetNtfsDataExtraField">
+            <summary>
+            NTFS時刻情報のExtraFieldを取得
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetExtendedTimestamp">
+            <summary>
+            ExtendedTimestampの取得
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetAesExtraData">
+            <summary>
+            AES暗号化のExtraFieldを取得
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetZip64ExtraData">
+            <summary>
+            ZIP64ExtraDataを取得
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CentralDirectoryInfo.GetUnicodePathExtraData(System.String,System.Byte[])">
+            <summary>
+            UnicodePathExtraDataを取得
+            </summary>
+            <param name="headerFileName"></param>
+            <param name="headerFileNameb"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String)">
+            <summary>
+            1ファイル出力
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">出力先ファイルのパス</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String,System.String)">
+            <summary>
+            1ファイル出力
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">出力先ファイルのパス</param>
+            <param name="password">パスワード</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String,System.Threading.CancellationToken)">
+            <summary>
+            1ファイル出力
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">出力先ファイルのパス</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            1ファイル出力
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outFilePath">出力先ファイルのパス</param>
+            <param name="password">パスワード</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.FileInfo,System.String,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの取得(ファイルへの出力)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="fileInfo">出力先ファイルのFileInfo</param>
+            <param name="password">暗号化パスワード</param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream)">
+            <summary>
+            1ファイル出力(ストリームに出力)
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outStream">出力先ストリーム</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFile(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.String)">
+            <summary>
+            1ファイル出力(ストリームに出力)
+            </summary>
+            <param name="centralDirectory">CentoralDirectory</param>
+            <param name="outStream">出力先ストリーム</param>
+            <param name="password">パスワード</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            1ファイル出力(ストリームに出力)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="outStream">出力先ストリーム</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.String,System.Threading.CancellationToken)">
+            <summary>
+            1ファイル出力(ストリームに出力)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="outStream">出力先ストリーム</param>
+            <param name="password">パスワード</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.PutFileAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.Byte[],YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            1ファイル出力(ストリームに出力)
+            </summary>
+            <param name="centralDirectory">CentralDirectory</param>
+            <param name="outStream">出力先ストリーム</param>
+            <param name="password">パスワード</param>
+            <param name="abort">タスクキャンセル用のAbortオブジェクト</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFiles(System.IO.DirectoryInfo)">
+            <summary>
+            指定したディレクトリに書庫を解凍する
+            </summary>
+            <param name="outputDirectory">出力先ディレクトリ(存在しない場合は作成する)</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFiles(System.IO.DirectoryInfo,System.String)">
+            <summary>
+            指定したディレクトリに書庫を解凍する
+            </summary>
+            <param name="outputDirectory">出力先ディレクトリ(存在しない場合は作成する)</param>
+            <param name="password">パスワード</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFilesAsync(System.IO.DirectoryInfo,System.Threading.CancellationToken)">
+            <summary>
+            指定したディレクトリに書庫を解凍する
+            </summary>
+            <param name="outputDirectory">出力先ディレクトリ</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFilesAsync(System.IO.DirectoryInfo,System.String,System.Threading.CancellationToken)">
+            <summary>
+            指定したディレクトリに書庫を解凍する
+            </summary>
+            <param name="outputDirectory">出力先ディレクトリ</param>
+            <param name="password">暗号化パスワード</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFilesPrivate(System.IO.DirectoryInfo,System.Byte[])">
+            <summary>
+            指定したディレクトリに書庫を解凍する
+            </summary>
+            <param name="outputDirectory">出力先ディレクトリ(存在しない場合は作成する)</param>
+            <param name="password">パスワード</param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ExtractAllFilesAsync(System.IO.DirectoryInfo,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            指定したディレクトリに書庫を解凍する
+            </summary>
+            <param name="outputDirectory">出力先ディレクトリ</param>
+            <param name="password">暗号化パスワード</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CheckCentralDirectory(System.Collections.Generic.List{YGZipLib.UnZipArcClass.CentralDirectoryInfo})">
+            <summary>
+            CheckCentralDirectory
+            </summary>
+            <param name="centralDirectories"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.ToString">
+            <summary>
+            ToString
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.CheckDirectory(System.IO.DirectoryInfo,YGZipLib.UnZipArcClass.CentralDirectoryInfo)">
+            <summary>
+            出力先ディレクトリの妥当性チェック
+            </summary>
+            <param name="outputDirectory"></param>
+            <param name="centralDirectory"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.DecryptionStreamAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,YGZipLib.Streams.InputStream,System.Byte[],System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            復号化ストリーム設定
+            </summary>
+            <param name="centralDirectory"></param>
+            <param name="compDataStream"></param>
+            <param name="password"></param>
+            <param name="outputStream"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.DecompressStreamAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            展開ストリーム設定
+            </summary>
+            <param name="centralDirectory"></param>
+            <param name="compDataStream"></param>
+            <param name="outputStream"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.StreamWriteAsync(YGZipLib.UnZipArcClass.CentralDirectoryInfo,System.IO.Stream,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            ストリーム出力
+            </summary>
+            <param name="centralDirectory"></param>
+            <param name="readStream"></param>
+            <param name="outputStream"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.GetCentralDirectory">
+            <summary>
+            CentralDirectoryを取得してリストに格納
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.FindEndOfCentralDirectory(System.IO.Stream)">
+            <summary>
+            EndOfCentralDirectory(PK0506)の位置を取得
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.FindZip64EndOfCentralDirectory(System.Int64,System.IO.Stream)">
+            <summary>
+            Zip64 end of central directory recordの位置を取得
+            </summary>
+            <param name="pk0506pos"></param>
+            <param name="zipStream"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.Dispose(System.Boolean)">
+            <summary>
+            Dispose
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:YGZipLib.UnZipArcClass.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass">
+            <summary>ZIP書庫作成クラス</summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass.StoreTimestampOption">
+            <summary>
+            格納するタイムスタンプ
+            </summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.DosOnly">
+            <summary></summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.Ntfs">
+            <summary>NTFS Timestamp(default)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.ExtendedTimestamp">
+            <summary>extended timestamp</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.NtfsAndExtendedTimestamp">
+            <summary>NTFS Timestampとextended timestampの両方</summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass.COMPRESSION_OPTION">
+            <summary>
+            圧縮オプション
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.NOT_COMPRESSED">
+            <summary>圧縮なし</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.DEFLATE">
+            <summary>Deflate圧縮</summary>
+        </member>
+        <member name="T:YGZipLib.ZipArcClass.ENCRYPTION_OPTION">
+            <summary>
+            暗号化方式
+            </summary>
+            <remarks>
+            <see cref="P:YGZipLib.ZipArcClass.Password"/>が指定された場合に使用する暗号化方式を指定します。
+            </remarks>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.TRADITIONAL">
+            <summary>ZIP2.0(Traditional PKWARE Encryption)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.AES128">
+            <summary>AES 128bit(WinZIP互換)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.AES192">
+            <summary>AES 192bit(WinZIP互換)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.AES256">
+            <summary>AES 256bit(WinZIP互換)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0102">
+            <summary>CentralFileHeaderSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0304">
+            <summary>LocalFileHeaderSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0506">
+            <summary>EndOfCentralDirectorySignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0606">
+            <summary>Zip64EndOfCentralDirectorySignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0607">
+            <summary>Zip64EndOfCentralDirectoryLocatorSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.SIG_PK0708">
+            <summary>DataDescriptorHeaderSignature</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.HDR_MADEVER">
+            <summary>CentralDirectryに設定するmade ver</summary>
+            <remarks>
+            上位バイトはfile attributeの互換性。下位バイトはZIP仕様書のバージョン。
+            上位バイト 0:DOS(FAT/FAT32...),3:unix,7:mac,10:NTFS,...  
+              現状directoryとarchive属性にしか対応しないので0のDOSを設定
+            下位バイト ver6.3 を設定
+            </remarks>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.baseStream">
+            <summary>Zip書庫出力用ストリーム</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.baseFileStream">
+            <summary>Zip書庫出力用ファイルストリーム(zipファイルへの出力時に使用)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.partInfoList">
+            <summary>パート情報格納用リスト</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.dirDic">
+            <summary>ディレクトリ辞書(格納ディレクトリ名)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.dirDicOrg">
+            <summary>ディレクトリ辞書(入力されたディレクトリ)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.filenameEncoding">
+            <summary>ファイル名・パスワードのエンコーディング</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.isFinished">
+            <summary>Finish実行済み判定</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.tsm">
+            <summary>TemporaryStream管理</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.dirSplitChars">
+            <summary>ディレクトリの区切り文字</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.isStreamDispose">
+            <summary>streamの破棄が必要かのフラグ</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.addZipSemaphore">
+            <summary>同時処理件数制御用セマフォ</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.semaphoreCount">
+            <summary>セマフォ件数</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.processingFiles">
+            <summary>処理中のファイル</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.directoryEntries">
+            <summary>セントラルディレクトリのエントリ件数</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.bytePassword">
+            <summary>Password</summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.Password">
+            <summary>
+            暗号化パスワード  Default:null
+            <para>nullなら暗号化なし</para>
+            <para><see cref="P:YGZipLib.ZipArcClass.ZipFileNameEncoding"/>でEncodeされます。互換性のためにASCII文字推奨</para>
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.CompressionOption">
+            <summary>
+            圧縮オプション  Default:<see cref="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.DEFLATE"/>
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.EncryptionOption">
+            <summary>
+            暗号化方式(Default:TRADITIONAL)
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.CompressionLevel">
+            <summary>
+            <see cref="T:System.IO.Compression.CompressionLevel"/>
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreTimestamp">
+            <summary>
+            格納するタイムスタンプ(Default:<see cref="F:YGZipLib.ZipArcClass.StoreTimestampOption.Ntfs"/>)
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.ZipFileNameEncoding">
+            <summary>
+            ファイル名・パスワードのエンコーディング  Default:システム規定値(<see cref="P:System.Globalization.CultureInfo.CurrentUICulture"/>)
+            <para>.NET Framework環境以外(例:.net Core)ではCodePagesEncodingProviderを登録しないとasciiとutf系しか利用できない。<br />
+            それ以外のコードページを使用する場合はCodePagesEncodingProviderをしておく。</para>
+            <code>
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            </code>
+            </summary>
+            <remarks></remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreUtf8Filename">
+            <summary>
+            <see cref="P:YGZipLib.ZipArcClass.ZipFileNameEncoding"/>がUTF-8以外の場合に、UTF-8のファイル名も出力する<br />
+            通常の<see cref="P:YGZipLib.ZipArcClass.ZipFileNameEncoding"/>でEncodingされたファイル名の他に、Info-ZIP互換のUTF-8ファイル名を別途出力する。
+            <para>Info-ZIP Unicode Path Extra Field (0x7075)を出力する</para>
+            </summary>
+            <remarks>
+            zip仕様書(APPNOTE)だとpk0102/pk0304のファイルネームがUTF8の場合はExtraDataFieldを作成すべきでは無い(should not)。
+            flagのbit11(Language encoding flag EFS))==trueを設定しておけとある。そのためZipFileNameEncodingがUTF8の場合はこのフラグを無視する。
+            </remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.DontCompressExtRegExList">
+            <summary>
+            圧縮せずにそのまま格納する拡張子のパターンリスト  Default:指定なし
+            <para>圧縮せずに格納する拡張子を正規表現で指定する</para>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.Comment">
+            <summary>
+            コメント
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreDirectories">
+            <summary>
+            ディレクトリを格納する
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.StoreInOrderAdded">
+            <summary>
+            書庫に格納するファイル・ディレクトリを依頼順に格納する。初回のAdd系メソッド呼び出し前に設定する必要がある。
+            </summary>
+            <remarks>
+            圧縮タスクはAdd系メソッド呼び出し順に完了しないため、書庫への格納順がAdd系メソッドの呼び出し順と異なる可能性が高い。trueに設定した場合依頼順で格納する。
+            圧縮タスクが完了してもAdd系メソッド呼び出し順に格納するため、テンポラリファイル使用量や処理時間が増加する。
+            </remarks>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.ZipFileCount">
+            <summary>
+            書庫に格納済みのファイルとディレクトリの総数
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.ZipFileSize">
+            <summary>
+            出力済のZIP書庫サイズ
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.WriteQueueCount">
+            <summary>
+            ZIPファイルへの書き込み待ち件数
+            <para>部分的に大きなファイルが存在する場合や、処理多重度が高すぎてZIPファイルへの出力が間に合っていない場合に大きくなる</para>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.CompressionProcs">
+            <summary>
+            実行中の圧縮プロセス数
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.InProcessFilename">
+            <summary>
+            処理中のファイルを返却<br />
+            </summary>
+        </member>
+        <member name="P:YGZipLib.ZipArcClass.TotalFileCount">
+            <summary>
+            ファイル総件数
+            </summary>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.IO.Stream)">
+            <summary>
+            コンストラクタ 
+            </summary>
+            <param name="writeStream">
+            ZIP書庫出力ストリーム
+            </param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.String)">
+            <summary>
+            コンストラクタ 
+            </summary>
+            <param name="zipFileName">出力するZIPファイル名(既存ファイルは上書きされます)</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.String,System.Int32,System.String)">
+            <summary>
+            コンストラクタ (多重度、TemporaryDirectory指定)
+            </summary>
+            <param name="zipFileName">出力するZIPファイル名(既存ファイルは上書きされます)</param>
+            <param name="semaphoreCount">圧縮処理最大多重度(0の場合は<see cref="P:System.Environment.ProcessorCount" />)</param>
+            <param name="tempDirPath">TemporaryFile作成ディレクトリのPath(nullの場合は<see cref="M:System.IO.Path.GetTempPath" />"から取得)</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.#ctor(System.IO.Stream,System.Int32,System.String)">
+            <summary>
+            コンストラクタ (多重度、TemporaryDirectory指定)
+            </summary>
+            <param name="writeStream">ZIP書庫出力ストリーム</param>
+            <param name="semaphoreCount">圧縮処理最大多重度(0の場合は<see cref="P:System.Environment.ProcessorCount" />)</param>
+            <param name="tempDirPath">TemporaryFile作成ディレクトリのPath(nullの場合は<see cref="M:System.IO.Path.GetTempPath" />"から取得)</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Init(System.IO.Stream,System.String)">
+            <summary>
+            初期化
+            </summary>
+            <param name="st"></param>
+            <param name="tempDirPath"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectory(System.String)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="storeDirectoryName">追加するディレクトリ名</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectoryAsync(System.String)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="storeDirectoryName">追加するディレクトリ名</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectory(System.String,System.DateTime)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="storeDirectoryName">追加するディレクトリ名</param>
+            <param name="timeStamp">ディレクトリのタイムスタンプ</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectoryAsync(System.String,System.DateTime)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="storeDirectoryName">追加するディレクトリ名</param>
+            <param name="timeStamp">ディレクトリのタイムスタンプ</param>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectory(System.String,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="storeDirectoryName">追加するディレクトリ名</param>
+            <param name="creationTimeStamp">作成日時</param>
+            <param name="lastWriteTimeStamp">更新日時</param>
+            <param name="lastAccessTimeStamp">アクセス日時</param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddNewDirectoryAsync(System.String,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="storeDirectoryName">追加するディレクトリ名</param>
+            <param name="creationTimeStamp">作成日時</param>
+            <param name="lastWriteTimeStamp">更新日時</param>
+            <param name="lastAccessTimeStamp">アクセス日時</param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectory(System.String)">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String)">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectory(System.String,System.String)">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String)">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectory(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex})">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
+            <param name="excludeFileNameList">格納対象外とするファイル名の正規表現リスト</param>
+            <param name="excludeDirectoryNameList">格納対象外とするディレクトリ名の正規表現リスト</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex})">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
+            <param name="excludeFileNameList">格納対象外とするファイル名の正規表現リスト</param>
+            <param name="excludeDirectoryNameList">格納対象外とするディレクトリ名の正規表現リスト</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddDirectoryAsync(System.String,System.String,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Threading.CancellationToken)">
+            <summary>
+            指定ディレクトリの配下のファイルをすべて書庫に格納する
+            </summary>
+            <param name="dirPath">格納するフォルダのパス</param>
+            <param name="baseDir">書庫にbaseDirを作成して、配下にディレクトリ構成を格納する。</param>
+            <param name="excludeFileNameList">格納対象外とするファイル名の正規表現リスト</param>
+            <param name="excludeDirectoryNameList">格納対象外とするディレクトリ名の正規表現リスト</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStream(System.String,System.IO.Stream)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するストリーム</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するストリーム</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するストリーム</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStream(System.String,System.IO.Stream,System.DateTime)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するファイルのストリーム</param>
+            <param name="timeStamp">ファイルのタイムスタンプ</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するファイルのストリーム</param>
+            <param name="timeStamp">ファイルのタイムスタンプ</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するファイルのストリーム</param>
+            <param name="timeStamp">ファイルのタイムスタンプ</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStream(System.String,System.IO.Stream,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するファイルのストリーム</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するファイルのストリーム</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileStreamAsync(System.String,System.IO.Stream,System.DateTime,System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(Stream)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="storeStream">追加するファイルのストリーム</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytes(System.String,System.Byte[])">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[])">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytes(System.String,System.Byte[],System.DateTime)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="timeStamp">ファイルのタイムスタンプ</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="timeStamp">ファイルのタイムスタンプ</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="timeStamp">ファイルのタイムスタンプ</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytes(System.String,System.Byte[],System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileBytesAsync(System.String,System.Byte[],System.DateTime,System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(バイト配列)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="fileAccessTimeStamp">ファイルのアクセス日時</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePath(System.String)">
+            <summary>
+            ファイルの追加を行う(ファイル名)
+            </summary>
+            <param name="filePath">追加するファイルのパス</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String)">
+            <summary>
+            ファイルの追加を行う(ファイル名)
+            </summary>
+            <param name="filePath">追加するファイルのパス</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(ファイル名)
+            </summary>
+            <param name="filePath">追加するファイルのパス</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePath(System.String,System.String)">
+            <summary>
+            ファイルの追加を行う(ファイル名)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="filePath">追加するファイルのパス</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String,System.String)">
+            <summary>
+            ファイルの追加を行う(ファイル名)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="filePath">追加するファイルのパス</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFilePathAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(ファイル名)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="filePath">追加するファイルのパス</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfo(System.IO.FileInfo)">
+            <summary>
+            ファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.IO.FileInfo)">
+            <summary>
+            ファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.IO.FileInfo,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="fileInfo">FileInfo</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfo(System.String,System.IO.FileInfo)">
+            <summary>
+            ファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.String,System.IO.FileInfo)">
+            <summary>
+            ファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="fileInfo">FileInfo</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddFileInfoAsync(System.String,System.IO.FileInfo,System.Threading.CancellationToken)">
+            <summary>
+            ファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="storeFileName">格納ファイル名</param>
+            <param name="fileInfo">FileInfo</param>
+            <param name="cancelToken">キャンセルトークン</param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Finish">
+            <summary>
+            ZIP書庫の作成を終了する
+            <para>ZIP書庫作成終了時に必ず呼び出すこと。ファイルに出力している場合、出力ファイルのクローズを行う</para>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.FinishAsync">
+            <summary>
+            ZIP書庫の作成を終了する
+            <para>ZIP書庫作成終了時に必ず呼び出すこと。ファイルに出力している場合、出力ファイルのクローズを行う</para>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.FinishAsync(System.Threading.CancellationToken)">
+            <summary>
+            ZIP書庫の作成を終了する
+            <para>ZIP書庫作成終了時に必ず呼び出すこと。ファイルに出力している場合、出力ファイルのクローズを行う</para>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPK0506(System.Int64,System.Int64,System.Int64)">
+            <summary>
+            PK0506(EndOfCentralDirectory) 編集
+            </summary>
+            <param name="centralDirPos"></param>
+            <param name="centralDirLength"></param>
+            <param name="centralDirCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.GetSemaphoreCount">
+            <summary>
+            デフォルトの多重度取得
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecursiveAsync(System.String,System.IO.DirectoryInfo,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Threading.CancellationToken)">
+            <summary>
+            ディレクトリを再帰的に書庫に追加する
+            </summary>
+            <param name="baseDir">書庫に格納する親ディレクトリ</param>
+            <param name="di">格納するファイルorディレクトリ</param>
+            <param name="excludeDirectoryNameList">格納対象外とするディレクトリの正規表現リスト(一致するディレクトリ以下が格納対象外となる))</param>
+            <param name="excludeFileNameList">格納対象外とするファイルの正規表現リスト</param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectoryRecursiveMainAsync(System.String,System.IO.DirectoryInfo,System.Collections.Generic.List{System.Text.RegularExpressions.Regex},System.Collections.Generic.List{System.Text.RegularExpressions.Regex},YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            ディレクトリを再帰的に書庫に追加する
+            </summary>
+            <param name="baseDir"></param>
+            <param name="di"></param>
+            <param name="excludeFileNameList"></param>
+            <param name="excludeDirectoryNameList"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectory(System.String,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            空のディレクトリを追加する
+            </summary>
+            <param name="directoryName">追加するディレクトリ名</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="lastAccessTimeStamp">ファイルのアクセス日時</param>
+            <param name="cancelToken"></param>
+            <param name="abort"></param>
+            <param name="store"></param>
+            <remarks>正規化後の書庫ルートからの親ディレクトリ</remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectorySub(System.String,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            ディレクトリを追加する(Sub)
+            </summary>
+            <param name="directoryName">追加するディレクトリ名</param>
+            <param name="creationTimeStamp">ファイルの作成日時</param>
+            <param name="lastWriteTimeStamp">ファイルの更新日時</param>
+            <param name="lastAccessTimeStamp">ファイルのアクセス日時</param>
+            <param name="cancelToken"></param>
+            <param name="abort"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsync(System.String,System.IO.FileInfo,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            書庫にファイルの追加を行う(FileInfo)
+            </summary>
+            <param name="storeFileName">ファイル名</param>
+            <param name="fi">追加するファイルの情報</param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp">ファイルの作成日時</param>
+            <param name="fileModifyTimestamp">ファイルの更新日時</param>
+            <param name="fileAccessTimestamp">ファイルのアクセス日時</param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsync(System.String,System.Byte[],YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            書庫にファイルの追加を行う(Byte配列)
+            </summary>
+            <param name="fileName">ファイル名</param>
+            <param name="byteData">追加するバイト配列</param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp">ファイルの作成日時</param>
+            <param name="fileModifyTimestamp">ファイルの更新日時</param>
+            <param name="fileAccessTimestamp">ファイルのアクセス日時</param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsync(System.String,System.IO.Stream,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            書庫にファイルの追加を行う(FileStream)
+            </summary>
+            <param name="fileName">ファイル名</param>
+            <param name="fileStream">追加するファイルのストリーム</param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp">ファイルの作成日時</param>
+            <param name="fileModifyTimestamp">ファイルの更新日時</param>
+            <param name="fileAccessTimestamp">ファイルのアクセス日時</param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPartInfo(System.String,YGZipLib.ZipArcClass.COMPRESSION_OPTION,YGZipLib.ZipArcClass.ENCRYPTION_OPTION,System.DateTime,System.DateTime,System.DateTime,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            PartInfo編集
+            </summary>
+            <param name="fileName"></param>
+            <param name="compressionOption"></param>
+            <param name="encryptionOption"></param>
+            <param name="fileCreateTimestamp"></param>
+            <param name="fileModifyTimestamp"></param>
+            <param name="fileAccessTimestamp"></param>
+            <param name="cancelToken"></param>
+            <param name="abort"></param>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.SanitizeEntryName(System.String)">
+            <summary>
+            ZIPエントリ名のサニタイズ
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipDirectorySub(YGZipLib.Common.PartInfoClass,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            ZIP書庫の個別ディレクトリ作成サブ
+            </summary>
+            <param name="partInfo"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddZipFileAsyncSubAsync(YGZipLib.Common.PartInfoClass,System.IO.Stream,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            ZIP書庫の個別ファイル作成サブ(ファイル用)
+            </summary>
+            <param name="partInfo"></param>
+            <param name="fileStream"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.WriteTempStreamAsync(System.IO.Stream,System.IO.Stream,YGZipLib.Common.PartInfoClass,System.Threading.CancellationToken)">
+            <summary>
+            テンポラリストリームに一ファイル分圧縮して出力する
+            </summary>
+            <returns></returns>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditExtraData(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            ExtraData編集
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditZip64ExtraData(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            Zip64ExtraDataInfoの編集
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPK0102(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            セントラルディレクトリ編集
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.EditPK0304(YGZipLib.Common.PartInfoClass)">
+            <summary>
+            ローカルファイルヘッダ編集
+            </summary>
+            <param name="partInfo"></param>
+            <remarks></remarks>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.partInfoDic">
+            <summary>キューに依頼順に登録するためのDictionary</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.addQueueId">
+            <summary>PartInfoClassのID順にリストに追加するためのID。partInfo.Idは1から始まる</summary>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.AddQueue(YGZipLib.Common.PartInfoClass,System.IO.Stream,YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            ベースストリームへの書き出しキュー追加
+            </summary>
+            <param name="partInfo"></param>
+            <param name="stream"></param>
+            <param name="abort"></param>
+            <param name="cancelToken"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.WriteBaseStreamAsync(YGZipLib.Common.TaskAbort,System.Threading.CancellationToken)">
+            <summary>
+            BASEストリームへの非同期書込み
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Dispose(System.Boolean)">
+            <summary>
+            Dispose
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:YGZipLib.ZipArcClass.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
+    </members>
+</doc>

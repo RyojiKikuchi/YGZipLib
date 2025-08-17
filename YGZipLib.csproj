@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>YGZipLib</RootNamespace>
@@ -24,8 +24,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>YGZipLib.xml</DocumentationFile>
-    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
-    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
+    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -39,8 +38,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
-    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
+    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <DefineDebug>false</DefineDebug>
@@ -53,15 +51,10 @@
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
-<ItemGroup Condition="Exists('def64')">
-  <None Include="docs\current\readme_def64\README.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme_def64\README-ja.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme_def64\LICENSE.txt" Pack="true" PackagePath="\" />
-</ItemGroup>
-<ItemGroup Condition="!Exists('def64')">
-  <None Include="docs\current\readme\README.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme\README-ja.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme\LICENSE.txt" Pack="true" PackagePath="\" />
+<ItemGroup>
+  <None Include="README.md" Pack="True" PackagePath="\" />
+  <None Include="README-ja.md" Pack="True" PackagePath="\" />
+  <None Include="LICENSE.txt" Pack="true" PackagePath="\" />
 </ItemGroup>
 
 <ItemGroup>
@@ -91,10 +84,6 @@
   <None Include="docs\current\en\YGZipLib.xml" Pack="true" PackagePath="lib\net8.0\en" />
   <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\net8.0\ja" />
 
-</ItemGroup>
-
-<ItemGroup>
-  <Folder Include="def64\" />
 </ItemGroup>
 
 

@@ -20,11 +20,12 @@
     <PackageTags>zip;aes;multiprocess;async;utf8</PackageTags>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageProjectUrl>https://github.com/RyojiKikuchi/YGZipLib</PackageProjectUrl>
+    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>YGZipLib.xml</DocumentationFile>
-    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -35,10 +36,10 @@
     <DebugType>embedded</DebugType>
     <Deterministic>False</Deterministic>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <PlatformTarget>anycpu</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <DefineDebug>false</DefineDebug>

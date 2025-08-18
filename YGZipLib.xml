@@ -707,15 +707,6 @@
             マスク配列処理メソッド設定
             </summary>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector512(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
-            <summary>Vector512(64Byte)でマスク処理</summary>
-        </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector256(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
-            <summary>Vector256(32Byte)でマスク処理</summary>
-        </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector128(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
-            <summary>Vector128でマスク処理</summary>
-        </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAvx2(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
             <summary>Avx2でマスク処理</summary>
         </member>

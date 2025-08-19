@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ERRMSG_ALREDY_FINISHED" xml:space="preserve">
+    <value>Already finished.</value>
+    <comment>既にFinish済みです。</comment>
+  </data>
+  <data name="ERRMSG_DIR_TRAVERSAL_NOT_ALLOWED" xml:space="preserve">
+    <value>Parent directory traversal is not allowed in zip entry names.: {0}</value>
+    <comment>親ディレクトリのトラバーサルは、ZIPエントリ名では許可されていません。: {0}</comment>
+  </data>
+  <data name="ERRMSG_INCORRECT_PASSWORD" xml:space="preserve">
+    <value>The password is incorrect.</value>
+    <comment>パスワードが異なります。</comment>
+  </data>
+  <data name="ERRMSG_INTERNAL_AESMASKGEN_ERROR" xml:space="preserve">
+    <value>Internal error. AES mask array generation status invalid.</value>
+    <comment>内部エラー。AESマスク配列生成ステータス不正。</comment>
+  </data>
+  <data name="ERRMSG_INTERNAL_QUEUE_ERROR" xml:space="preserve">
+    <value>Internal error. There is an unprocessed output queue.</value>
+    <comment>内部エラー。未処理の出力キューが存在します。</comment>
+  </data>
+  <data name="ERRMSG_INVALID_AESMODE" xml:space="preserve">
+    <value>Invalid AES mode specified.</value>
+    <comment>無効なAESモードが指定されています。</comment>
+  </data>
+  <data name="ERRMSG_INVALID_DIRNAME" xml:space="preserve">
+    <value>The directory name contains invalid characters.: {0}</value>
+    <comment>ディレクトリ名に無効な文字が含まれています。: {0}</comment>
+  </data>
+  <data name="ERRMSG_INVALID_FILENAME" xml:space="preserve">
+    <value>The file name contains invalid characters.: {0}</value>
+    <comment>ファイル名に無効な文字が含まれています。: {0}</comment>
+  </data>
+  <data name="ERRMSG_OTHER_THREAD_ABORTED" xml:space="preserve">
+    <value>Other threads have been aborted.</value>
+    <comment>他のスレッドが中止されました。</comment>
+  </data>
+  <data name="ERRMSG_PASSWORD_LENGTH" xml:space="preserve">
+    <value>The password length exceeds 65536 bytes.</value>
+    <comment>パスワードの長さが65536バイトを超えています。</comment>
+  </data>
+  <data name="ERRMSG_ROOT_PATH" xml:space="preserve">
+    <value>Absolute or drive-rooted paths are not allowed in zip entry names.: {0}</value>
+    <comment>絶対パスまたはドライブ指定のパスは、ZIPエントリ名に使用できません。: {0}</comment>
+  </data>
+  <data name="ERRMSG_TASK_RUNNING" xml:space="preserve">
+    <value>The file addition task is running.</value>
+    <comment>ファイル追加タスクが起動中です。</comment>
+  </data>
+  <data name="ERRMSG_TEMPDIR_NOTFOUND" xml:space="preserve">
+    <value>The temporary directory does not exist.: {0}</value>
+    <comment>テンポラリディレクトリが存在しません。: {0}</comment>
+  </data>
+  <data name="ERRMSG_AES_STREAM_BROKEN" xml:space="preserve">
+    <value>The AES encryption stream is broken.</value>
+    <comment>AES暗号化ストリームが破損しています。</comment>
+  </data>
+  <data name="ERRMSG_DIRECTORY_CANNOT_OUTPUT" xml:space="preserve">
+    <value>The directory cannot be output.: {0}</value>
+    <comment>ディレクトリは出力できません。: {0}</comment>
+  </data>
+  <data name="ERRMSG_UNZIP_ERROR" xml:space="preserve">
+    <value>An exception was thrown during zip decompression.: centralDirectory={0}</value>
+    <comment>zip解凍処理中に例外がスローされました。: centralDirectory={0}</comment>
+  </data>
+  <data name="ERRMSG_OUTPUT_DIRECTORY_NOT_FOUND" xml:space="preserve">
+    <value>The output directory does not exist.: {0}</value>
+    <comment>出力先ディレクトリが存在しません。: {0}</comment>
+  </data>
+  <data name="ERRMSG_OUTPUT_DIR_TRAVERSAL_NOT_ALLOWED" xml:space="preserve">
+    <value>Parent directory traversal is not allowed in zip entry names.: centralDirectory={0}</value>
+    <comment>親ディレクトリのトラバーサルは、ZIPエントリ名では許可されていません。: centralDirectory={0}</comment>
+  </data>
+  <data name="ERRMSG_OUTPUT_FILENAME_INVALID" xml:space="preserve">
+    <value>The output file name contains invalid characters.: centralDirectory={0}</value>
+    <comment>出力ファイル名に不正なキャラクタが含まれています。: centralDirectory={0}</comment>
+  </data>
+  <data name="ERRMSG_UNKNOWN_COMPRESSION_METHOD" xml:space="preserve">
+    <value>This compression method is not supported.: centralDirectory={0}</value>
+    <comment>未対応の圧縮方式です。: centralDirectory={0}</comment>
+  </data>
+  <data name="ERRMSG_ZIP_STREAM_BROKEN_CRC" xml:space="preserve">
+    <value>The ZIP file stream is broken.(CRC Error): centralDirectory={0}</value>
+    <comment>ZIPファイルのストリームが破損しています。(CRCエラー): centralDirectory={0}</comment>
+  </data>
+  <data name="ERRMSG_ZIP_STREAM_BROKEN_SIZE" xml:space="preserve">
+    <value>The ZIP file stream is broken.(Size): centralDirectory={0}</value>
+    <comment>ZIPファイルのストリームが破損しています。(SIZE): centralDirectory={0}</comment>
+  </data>
+  <data name="ERRMSG_BAD_ZIPFILE" xml:space="preserve">
+    <value>The ZIP file cannot be read. (The central directory not found.)</value>
+    <comment>ZIPファイルが読み込めません。（セントラルディレクトリが見つかりません）</comment>
+  </data>
+</root>

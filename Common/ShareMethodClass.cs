@@ -7,14 +7,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using static YGZipLib.UnZipArcClass;
+using System.Runtime.CompilerServices;
+
+
 
 
 #if YGZIPLIB
 using YGZipLib.Common;
 using YGZipLib.Streams;
+using YGZipLib.Properties;
 #elif YGMAILLIB
 using YGMailLib.Zip.Common;
 using YGMailLib.Zip.Streams;
+using YGMailLib.Zip.Properties;
 #endif
 
 #if YGZIPLIB
@@ -483,21 +489,46 @@ namespace YGMailLib.Zip.Common
             return string.Empty;
         }
 
-        internal static string ExternalFileAttributesString(uint extAttr)
+        internal static string ExternalFileAttributesString(UnZipArcClass.MadeOs os, uint extAttr)
         {
             StringBuilder sb = new StringBuilder();
-            if ((extAttr & (UInt32)FileAttributes.ReadOnly) > 0)
-                sb.Append("|ReadOnly");
-            if ((extAttr & (UInt32)FileAttributes.Hidden) > 0)
-                sb.Append("|Hidden");
-            if ((extAttr & (UInt32)FileAttributes.System) > 0)
-                sb.Append("|System");
-            if ((extAttr & (UInt32)FileAttributes.Directory) > 0)
-                sb.Append("|Directory");
-            if ((extAttr & (UInt32)FileAttributes.Archive) > 0)
-                sb.Append("|Archive");
-            if ((extAttr & (UInt32)FileAttributes.Normal) > 0)
-                sb.Append("|Normal");
+            switch (os)
+            {
+                case MadeOs.MSDOS:
+                case MadeOs.NTFS:
+                case MadeOs.VFAT:
+                case MadeOs.WindowsNT:
+                    if ((extAttr & (UInt32)FileAttributes.ReadOnly) > 0)
+                        sb.Append("|ReadOnly");
+                    if ((extAttr & (UInt32)FileAttributes.Hidden) > 0)
+                        sb.Append("|Hidden");
+                    if ((extAttr & (UInt32)FileAttributes.System) > 0)
+                        sb.Append("|System");
+                    if ((extAttr & (UInt32)FileAttributes.Directory) > 0)
+                        sb.Append("|Directory");
+                    if ((extAttr & (UInt32)FileAttributes.Archive) > 0)
+                        sb.Append("|Archive");
+                    if ((extAttr & (UInt32)FileAttributes.Normal) > 0)
+                        sb.Append("|Normal");
+
+                    break;
+                case UnZipArcClass.MadeOs.UNIX:
+                    if ((extAttr & UnZipArcClass.UNIX_S_IFREG) > 0)
+                    {
+                        sb.Append("|S_IFREG");
+                    }
+                    if ((extAttr & UnZipArcClass.UNIX_S_IFDIR) > 0)
+                    {
+                        sb.Append("|S_IFDIR");
+                    }
+                    if ((extAttr & UnZipArcClass.UNIX_S_IFLNK) > 0)
+                    {
+                        sb.Append("|S_IFLNK");
+                    }
+                    break;
+                default:
+                    break;
+            }
             if (sb.Length > 0)
             {
                 return sb.ToString().Substring(1);
@@ -530,6 +561,57 @@ namespace YGMailLib.Zip.Common
 			}
 			return sb.ToString();
 		}
+
+        internal static string MadeVerString(ushort madeVer)
+        {
+            StringBuilder sb= new StringBuilder();
+            switch((UnZipArcClass.MadeOs)(madeVer >> 8))
+            {
+                case MadeOs.MSDOS:
+                    sb.Append("MS-DOS");
+                    break;
+                case MadeOs.UNIX:
+                    sb.Append("UNIX");
+                    break;
+                case MadeOs.OS2:
+                    sb.Append("OS/2 HPFS");
+                    break;
+                case MadeOs.Macintosh:
+                    sb.Append("Macintosh");
+                    break;
+                case MadeOs.Z_SYSTEM:
+                    sb.Append("Z-System");
+                    break;
+                case MadeOs.NTFS:
+                    sb.Append("Windows NTFS");
+                    break;
+                case MadeOs.VFAT:
+                    sb.Append("VFAT");
+                    break;
+                case MadeOs.WindowsNT:
+                    sb.Append("WindownNT");
+                    break;
+                case MadeOs.OSX:
+                    sb.Append("OS X");
+                    break;
+                default:
+                    sb.Append("Unknown OS");
+                    break;
+            }
+            sb.Append($" {VersionString(madeVer)}");
+            return sb.ToString();
+        }
+
+        internal static string VersionString(ushort madeVer)
+        {
+            int version = madeVer & 0x00FF;
+            if (version == 0)
+            {
+                return "1.0";
+            }
+            return $"{version / 10}.{version % 10}";
+        }
+
 
         /// <summary>
         /// byte配列を文字列に変換
@@ -848,7 +930,7 @@ namespace YGMailLib.Zip.Common
             tempPath = Path.GetFullPath(tempPath ?? Path.GetTempPath());
             if (Directory.Exists(tempPath) == false)
             {
-                throw new DirectoryNotFoundException($"Temporary directory does not exist. {tempPath}");
+                throw new DirectoryNotFoundException(string.Format(Resources.ERRMSG_TEMPDIR_NOTFOUND, tempPath));
             }
 
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())

@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
 
-
 #if YGZIPLIB
+using YGZipLib.Properties;
 using YGZipLib.Common;
 
 namespace YGZipLib.Streams
@@ -219,7 +219,11 @@ namespace YGZipLib.Streams
 
 		public UnzipTemp(Stream zipStream, string tempDir)
 		{
-			streamDic = new ConcurrentDictionary<string, Stream>();
+            if(Directory.Exists(tempDir) == false)
+            {
+                throw new DirectoryNotFoundException(string.Format(Resources.ERRMSG_TEMPDIR_NOTFOUND, tempDir));
+            }
+            streamDic = new ConcurrentDictionary<string, Stream>();
 			mode = TEMP_MODE.STREAM;
             zipFileName = ShareMethodClass.GetTempFileName(tempDir);
             using (FileStream fs = new FileStream(zipFileName, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite, 819200, FileOptions.SequentialScan))

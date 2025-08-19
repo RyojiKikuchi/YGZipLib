@@ -4,9 +4,11 @@ using System.Security.Cryptography;
 #if YGZIPLIB
 using YGZipLib.Common;
 using YGZipLib.Streams;
+using YGZipLib.Properties;
 #elif YGMAILLIB
 using YGMailLib.Zip.Common;
 using YGMailLib.Zip.Streams;
+using YGMailLib.Zip.Properties;
 #endif
 
 #if YGZIPLIB
@@ -178,7 +180,7 @@ namespace YGMailLib.Zip.Streams
 			}
 			if (checkCrc != (byte)((crc32 >> 24) & 0xFFu))
 			{
-				throw new CryptographicException("Invalid Password.");
+				throw new CryptographicException(Resources.ERRMSG_INCORRECT_PASSWORD);
 			}
 		}
 

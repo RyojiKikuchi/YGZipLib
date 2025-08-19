@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 #if YGZIPLIB
 using YGZipLib.Common;
 using YGZipLib.Streams;
+using YGZipLib.Properties;
 #elif YGMAILLIB
 using YGMailLib.Zip.Common;
 using YGMailLib.Zip.Streams;
+using YGMailLib.Zip.Properties;
 #endif
 #if NET5_0_OR_GREATER
 using System.Runtime.Intrinsics;
@@ -149,7 +151,7 @@ namespace YGMailLib.Zip.Streams
                     case ZipArcClass.ENCRYPTION_OPTION.AES256:
                         break;
                     default:
-                        throw new CryptographicException(nameof(aesMode), "Invalid AES mode specified.");
+                        throw new ArgumentException(Resources.ERRMSG_INVALID_AESMODE, nameof(aesMode));
                 }
                 byte[] aesSalt = new byte[AES_SALT_LENGTH[(int)aesMode]];
 
@@ -191,7 +193,7 @@ namespace YGMailLib.Zip.Streams
                     // パスワード検証値チェック
                     if (!ShareMethodClass.ByteArrayCompare(passwordValidationDataIn, passwordValidationDataInit))
                     {
-                        throw new CryptographicException("Invalid AES Password.");
+                        throw new CryptographicException(Resources.ERRMSG_INCORRECT_PASSWORD);
                     }
 
                     // ストリーム設定
@@ -574,7 +576,7 @@ namespace YGMailLib.Zip.Streams
 #if DEBUG
                     Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(GetMaskArray): isCompleted={isCompleted}, isError={isError}, ThreadState={createMaskThread.ThreadState}");
 #endif
-                    throw new InvalidOperationException("Invalid status of the AES mask array creation thread.");
+                    throw new InvalidOperationException(Resources.ERRMSG_INTERNAL_AESMASKGEN_ERROR);
                 }
 
                 byte[] returnArray = maskArray;
@@ -1215,21 +1217,13 @@ namespace YGMailLib.Zip.Streams
             calcHmac.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
             Array.Copy(calcHmac.Hash, hash, hash.Length);
             byte[] varidationData = new byte[10];
-            try
-            {
-                ShareMethodClass.StreamReadBuffer(this.readStream.BaseStream, varidationData);
-            }
-            catch (EndOfStreamException)
-            {
-                throw new EndOfStreamException("AES encryption stream is broken.");
-            }
-            catch { throw; }
+            ShareMethodClass.StreamReadBuffer(this.readStream.BaseStream, varidationData);
 #if DEBUG
             Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(CheckHash): Length={totalReadCount}, varidationValue={ShareMethodClass.ByteArrayToHex(varidationData, true)}, hash={ShareMethodClass.ByteArrayToHex(hash, true)}");
 #endif
             if (!ShareMethodClass.ByteArrayCompare(varidationData, hash))
             {
-                throw new CryptographicException("AES encryption stream is broken.");
+                throw new CryptographicException(Resources.ERRMSG_AES_STREAM_BROKEN);
             }
         }
 
@@ -1332,7 +1326,7 @@ namespace YGMailLib.Zip.Streams
             {
                 if(totalReadCount != readStream.Length)
                 {
-                    throw new EndOfStreamException("AES encryption stream is broken.");
+                    throw new EndOfStreamException(Resources.ERRMSG_AES_STREAM_BROKEN);
                 }
                 return readCount;
             }

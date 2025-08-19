@@ -14,10 +14,12 @@ using System.Diagnostics;
 #endif
 #if YGZIPLIB
 using YGZipLib.Common;
+using YGZipLib.Properties;
 using YGZipLib.Streams;
 #elif YGMAILLIB
 using YGMailLib.Zip.Common;
 using YGMailLib.Zip.Streams;
+using YGMailLib.Zip.Properties;
 #endif
 
 
@@ -100,9 +102,11 @@ namespace YGMailLib.Zip
         internal enum HeaderNeedver : UInt16
         {
             STORED = 0x000a,
-            DIRECTORY_DEFLATE_ZIPENC = 0x0014,
-            ZIP64 = 0x002d,
-            AESENC = 0x0033
+            DIRECTORY = 0x0014,
+            DEFLATE = 0x0014,
+            ZIPENC = 0x0014,
+            AESENC = 0x0014,
+            ZIP64 = 0x002d
         }
 
         #endregion
@@ -223,7 +227,7 @@ namespace YGMailLib.Zip
 
                 if (p.Length > 0xFFFF)
                 {
-                    throw new ArgumentException("Password length must be less than 65536 bytes.", nameof(value));
+                    throw new ArgumentException(Resources.ERRMSG_PASSWORD_LENGTH, nameof(value));
                 }
                 bytePassword = p;
             }
@@ -460,7 +464,12 @@ if (filenameEncoding == null)
                     Path.AltDirectorySeparatorChar
                 };
             }
+            if(Directory.Exists(tempDirPath) == false)
+            {
+                throw new DirectoryNotFoundException(string.Format(Resources.ERRMSG_TEMPDIR_NOTFOUND, tempDirPath));
+            }
             tsm = new TempStreamManage(tempDirPath);
+
             baseStream = new WriteCountStream(st);
         }
 
@@ -525,7 +534,7 @@ if (filenameEncoding == null)
         /// <param name="lastAccessTimeStamp">アクセス日時</param>
         public void AddNewDirectory(string storeDirectoryName, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime lastAccessTimeStamp)
         {
-            AddZipDirectory(storeDirectoryName, creationTimeStamp, lastWriteTimeStamp, lastAccessTimeStamp, TaskAbort.Create, CancellationToken.None);
+            AddZipDirectory(storeDirectoryName, creationTimeStamp, lastWriteTimeStamp, lastAccessTimeStamp, TaskAbort.Create(), CancellationToken.None);
         }
 
         /// <summary>
@@ -537,7 +546,7 @@ if (filenameEncoding == null)
         /// <param name="lastAccessTimeStamp">アクセス日時</param>
         public Task AddNewDirectoryAsync(string storeDirectoryName, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime lastAccessTimeStamp)
         {
-            AddZipDirectory(storeDirectoryName, creationTimeStamp, lastWriteTimeStamp, lastAccessTimeStamp, TaskAbort.Create, CancellationToken.None);
+            AddZipDirectory(storeDirectoryName, creationTimeStamp, lastWriteTimeStamp, lastAccessTimeStamp, TaskAbort.Create(), CancellationToken.None);
             return Task.CompletedTask;
         }
 
@@ -778,7 +787,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public async Task AddFileStreamAsync(string storeFileName, Stream storeStream, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
         {
-            await AddZipFileAsync(storeFileName, storeStream, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken).ConfigureAwait(false);
+            await AddZipFileAsync(storeFileName, storeStream, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create(), cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -894,7 +903,7 @@ if (filenameEncoding == null)
         /// <remarks></remarks>
         public async Task AddFileBytesAsync(string storeFileName, byte[] byteData, DateTime creationTimeStamp, DateTime lastWriteTimeStamp, DateTime fileAccessTimeStamp, CancellationToken cancelToken)
         {
-            await AddZipFileAsync(storeFileName, byteData, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create, cancelToken).ConfigureAwait(false);
+            await AddZipFileAsync(storeFileName, byteData, CompressionOption, EncryptionOption, creationTimeStamp, lastWriteTimeStamp, fileAccessTimeStamp, TaskAbort.Create(), cancelToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1083,13 +1092,15 @@ if (filenameEncoding == null)
             // Finish済チェック
             if (isFinished)
             {
-                throw new InvalidOperationException("Already finished.");
+                throw new InvalidOperationException(Resources.ERRMSG_ALREDY_FINISHED);
             }
 
             if (CompressionProcs > 0)
             {
-                throw new InvalidOperationException("Archiver process is running..");
+                throw new InvalidOperationException(Resources.ERRMSG_TASK_RUNNING);
             }
+
+            cancelToken.ThrowIfCancellationRequested();
 
             isFinished = true;
 
@@ -1110,7 +1121,7 @@ if (filenameEncoding == null)
                 writeStreamTask.Dispose();
 
                 // queueに残りが無いか念のため処理する
-                await WriteBaseStreamAsync(TaskAbort.Create, cancelToken).ConfigureAwait(false);
+                await WriteBaseStreamAsync(TaskAbort.Create(), cancelToken).ConfigureAwait(false);
                 if (writeStreamTask.Exception != null)
                 {
                     throw writeStreamTask.Exception;
@@ -1118,7 +1129,7 @@ if (filenameEncoding == null)
                 if (partInfoDic.Count > 0)
                 {
                     // queueに残りがある場合、例外を投げる
-                    throw new InvalidOperationException("Internal queue error.");
+                    throw new InvalidOperationException(Resources.ERRMSG_INTERNAL_QUEUE_ERROR);
                 }
 
                 // CentoralDirectoryの開始位置待避
@@ -1139,17 +1150,6 @@ if (filenameEncoding == null)
 #endif
                     centralDirLength += pk0102Bytes.LongLength;
                 }
-
-//                foreach (PartInfoClass partinfo in partInfoList)
-//                {
-//                    byte[] pk0102Bytes = partinfo.Pk0102Header.GetBytes();
-//#if NET6_0_OR_GREATER
-//                    await baseStream.WriteAsync(new ReadOnlyMemory<byte>(pk0102Bytes), cancelToken).ConfigureAwait(false);
-//#else
-//                    await baseStream.WriteAsync(pk0102Bytes, 0, pk0102Bytes.Length, cancelToken).ConfigureAwait(false);
-//#endif
-//                    centralDirLength += pk0102Bytes.LongLength;
-//                }
 
                 // PK0506(EndOfCentralDirectory) 編集
                 ZipHeader.PK0506Info pk0506Header = EditPK0506(centralDirPos, centralDirLength, centralDirCount);
@@ -1352,7 +1352,7 @@ if (filenameEncoding == null)
             Task t = Task.Run(async () =>
             {
 
-                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, di, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create, cancelToken);
+                List<Task> taskList = AddZipDirectoryRecursiveMainAsync(baseDir, di, excludeFileNameList, excludeDirectoryNameList, TaskAbort.Create(), cancelToken);
                 await Task.WhenAll(taskList.ToArray()).ConfigureAwait(false);
 
             }, cancelToken);
@@ -1412,7 +1412,6 @@ if (filenameEncoding == null)
             foreach (FileInfo targetFile in fileList)
             {
                 cancelToken.ThrowIfCancellationRequested();
-                abort.ThrowIfAbortRequested();
 
                 // 対象外ファイル判定
                 if (excludeFileNameList != null && excludeFileNameList.Count > 0)
@@ -1443,7 +1442,6 @@ if (filenameEncoding == null)
             foreach (DirectoryInfo targetDirectory in dirList)
             {
                 cancelToken.ThrowIfCancellationRequested();
-                abort.ThrowIfAbortRequested();
 
                 // 格納対象外ディレクトリ判定
                 if (excludeDirectoryNameList != null && excludeDirectoryNameList.Count > 0)
@@ -1512,7 +1510,7 @@ if (filenameEncoding == null)
                     // ディレクトリ名の使用不可文字チェック
                     if (ShareMethodClass.CheckPathName(dirName) == false)
                     {
-                        throw new ArgumentException($"The directory name contains invalid characters. dirName={directoryName}");
+                        throw new ArgumentException(string.Format(Resources.ERRMSG_INVALID_DIRNAME, directoryName));
                     }
 
                     // 書庫にディレクトリ追加
@@ -1580,16 +1578,7 @@ if (filenameEncoding == null)
                              DateTime fileAccessTimestamp,
                              CancellationToken cancelToken)
         {
-            if (fi.Exists == false)
-            {
-                throw new FileNotFoundException(fi.FullName);
-            }
-            if (string.IsNullOrEmpty(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            return AddZipFileAsync(fileName, fi, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, TaskAbort.Create, cancelToken);
+            return AddZipFileAsync(fileName, fi, compressionOption, encryptionOption, fileCreateTimestamp, fileModifyTimestamp, fileAccessTimestamp, TaskAbort.Create(), cancelToken);
         }
 
         /// <summary>
@@ -1711,6 +1700,11 @@ if (filenameEncoding == null)
                                            CancellationToken cancelToken)
         {
 
+            if(string.IsNullOrEmpty(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
             // ファイル名のチェック
             fileName = SanitizeEntryName(fileName);
 
@@ -1721,7 +1715,7 @@ if (filenameEncoding == null)
             // ファイル名のチェック
             if (ShareMethodClass.CheckFileName(arcFileName) == false)
             {
-                throw new ArgumentException($"The file name contains invalid characters. fileName={arcFileName}");
+                throw new ArgumentException(string.Format(Resources.ERRMSG_INVALID_FILENAME, arcFileName), nameof(fileName));
             }
 
             // ディレクトリに配置される場合はディレクトリを作成する
@@ -1785,7 +1779,7 @@ if (filenameEncoding == null)
 
             // ドライブ指定（例: C:）や絶対パスは禁止
             if (Path.IsPathRooted(work) || (work.Length >= 2 && char.IsLetter(work[0]) && work[1] == ':'))
-                throw new ArgumentException("Absolute or drive-rooted paths are not allowed in zip entry names.", nameof(name));
+                throw new ArgumentException(string.Format(Resources.ERRMSG_ROOT_PATH, name), nameof(name));
 
             // . と .. を正規化
             var parts = work.Split(dirSplitChars, StringSplitOptions.RemoveEmptyEntries);
@@ -1794,7 +1788,7 @@ if (filenameEncoding == null)
             {
                 if (p == "." || p == "..")
                 {
-                    if (stack.Count == 0) throw new ArgumentException("Parent directory traversal is not allowed in zip entry names.", nameof(name));
+                    if (stack.Count == 0) throw new ArgumentException(string.Format(Resources.ERRMSG_DIR_TRAVERSAL_NOT_ALLOWED, name), nameof(name));
                     stack.Pop();
                     continue;
                 }
@@ -1817,19 +1811,43 @@ if (filenameEncoding == null)
             // セマフォ獲得待ち
             try
             {
+
+                // タスクキャンセル判定
+                cancelToken.ThrowIfCancellationRequested();
+
+                // 他スレッドの中断判定
+                abort.ThrowIfAbortRequested();
+
                 await this.addZipSemaphore.WaitAsync(cancelToken).ConfigureAwait(false);
+
+                // タスクキャンセル判定
+                cancelToken.ThrowIfCancellationRequested();
+
+                // 他スレッドの中断判定
+                abort.ThrowIfAbortRequested();
+
+                // Finish済チェック
+                if (isFinished)
+                {
+                    throw new InvalidOperationException(Resources.ERRMSG_ALREDY_FINISHED);
+                }
+
             }
-            catch (OperationCanceledException)
+            catch (TaskCanceledException)
             {
-                abort.Abort();
+                return;
+            }
+            catch (OperationCanceledException ex)
+            {
+                abort.Abort(ex);
 #if DEBUG
                 Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : Semaphore Cancel Request. Count={this.addZipSemaphore.CurrentCount}, wait={stp.Elapsed.TotalMilliseconds}ms");
 #endif
                 return;
             }
-            catch
+            catch (Exception ex)
             {
-                abort.Abort();
+                abort.Abort(ex);
                 throw;
             }
 
@@ -1840,12 +1858,6 @@ if (filenameEncoding == null)
 
             try
             {
-
-                // タスクキャンセル判定
-                cancelToken.ThrowIfCancellationRequested();
-
-                // 中止判定
-                abort.ThrowIfAbortRequested();
 
                 // 処理中リストに追加
                 processingFiles.TryAdd(partInfo, false);
@@ -1860,9 +1872,9 @@ if (filenameEncoding == null)
                 await this.AddZipFileAsyncSubAsync(partInfo, fileStream, abort, cancelToken).ConfigureAwait(false);
             }
             catch (TaskAbort.TaskAbortException) { return; }
-            catch (Exception)
+            catch (Exception ex)
             {
-                abort.Abort();
+                abort.Abort(ex);
                 throw;
             }
             finally
@@ -1890,9 +1902,10 @@ if (filenameEncoding == null)
         /// <param name="cancelToken"></param>
         private void AddZipDirectorySub(PartInfoClass partInfo, TaskAbort abort, CancellationToken cancelToken)
         {
+            // Finish済チェック
             if (isFinished)
             {
-                throw new InvalidOperationException("Already finished.");
+                throw new InvalidOperationException(Resources.ERRMSG_ALREDY_FINISHED);
             }
 
             // DataDescriptor編集
@@ -1919,9 +1932,10 @@ if (filenameEncoding == null)
         private async Task AddZipFileAsyncSubAsync(PartInfoClass partInfo, Stream fileStream, TaskAbort abort, CancellationToken cancelToken)
         {
 
-            if (isFinished == true)
+            // Finish済チェック
+            if (isFinished)
             {
-                throw new System.InvalidOperationException("Already finished.");
+                throw new InvalidOperationException(Resources.ERRMSG_ALREDY_FINISHED);
             }
 
             // tempStream書き込み(圧縮、圧縮前後のサイズ取得、CRC32計算)
@@ -2468,41 +2482,49 @@ if (filenameEncoding == null)
                         EditPK0102(partInfo);
 
                         // Needver設定
+                        HeaderNeedver needver = HeaderNeedver.STORED;
+                        if (partInfo.Zip64ExtraData != null)
+                        {
+                            // ZIP64
+                            if (needver < HeaderNeedver.ZIP64)
+                            {
+                                needver = HeaderNeedver.ZIP64;
+                            }
+                        }
+                        if ((partInfo.Pk0102Header.Outattr & (uint)FileAttributes.Directory) > 0 || string.IsNullOrWhiteSpace(Path.GetDirectoryName(partInfo.FullName)) == false)
+                        {
+                            // Directory
+                            if (needver < HeaderNeedver.DIRECTORY)
+                            {
+                                needver = HeaderNeedver.DIRECTORY;
+                            }
+                        }
+                        if ((partInfo.Pk0102Header.Comptype & (ushort)HeaderComptype.DEFLATE) > 0)
+                        {
+                            // Deflate
+                            if (needver < HeaderNeedver.DEFLATE)
+                            {
+                                needver = HeaderNeedver.DEFLATE;
+                            }
+                        }
+                        if ((partInfo.Pk0102Header.Opt & (ushort)HeaderGeneralFlag.ENCRYPTION) > 0)
+                        {
+                            // ZIP暗号化
+                            if (needver < HeaderNeedver.ZIPENC)
+                            {
+                                needver = HeaderNeedver.ZIPENC;
+                            }
+                        }
                         if ((partInfo.Pk0102Header.Comptype & (ushort)HeaderComptype.AES_ENCRYPTION) > 0)
                         {
                             // AES暗号化
-                            partInfo.Pk0102Header.Needver = (ushort)HeaderNeedver.AESENC;
-                            partInfo.Pk0304Header.Needver = (ushort)HeaderNeedver.AESENC;
+                            if (needver < HeaderNeedver.AESENC)
+                            {
+                                needver = HeaderNeedver.AESENC;
+                            }
                         }
-                        else if (partInfo.Zip64ExtraData != null)
-                        {
-                            // ZIP64
-                            partInfo.Pk0102Header.Needver = (ushort)HeaderNeedver.ZIP64;
-                            partInfo.Pk0304Header.Needver = (ushort)HeaderNeedver.ZIP64;
-                        }
-                        else if ((partInfo.Pk0102Header.Outattr & (uint)FileAttributes.Directory) > 0)
-                        {
-                            // Directory
-                            partInfo.Pk0102Header.Needver = (ushort)HeaderNeedver.DIRECTORY_DEFLATE_ZIPENC;
-                            partInfo.Pk0304Header.Needver = (ushort)HeaderNeedver.DIRECTORY_DEFLATE_ZIPENC;
-                        }
-                        else if ((partInfo.Pk0102Header.Comptype & (ushort)HeaderComptype.DEFLATE) > 0)
-                        {
-                            // Deflate
-                            partInfo.Pk0102Header.Needver = (ushort)HeaderNeedver.DIRECTORY_DEFLATE_ZIPENC;
-                            partInfo.Pk0304Header.Needver = (ushort)HeaderNeedver.DIRECTORY_DEFLATE_ZIPENC;
-                        }
-                        else if ((partInfo.Pk0102Header.Opt & (ushort)HeaderGeneralFlag.ENCRYPTION) > 0)
-                        {
-                            // ZIP暗号化
-                            partInfo.Pk0102Header.Needver = (ushort)HeaderNeedver.DIRECTORY_DEFLATE_ZIPENC;
-                            partInfo.Pk0304Header.Needver = (ushort)HeaderNeedver.DIRECTORY_DEFLATE_ZIPENC;
-                        }
-                        else
-                        {
-                            partInfo.Pk0102Header.Needver = (ushort)HeaderNeedver.STORED;
-                            partInfo.Pk0304Header.Needver = (ushort)HeaderNeedver.STORED;
-                        }
+                        partInfo.Pk0102Header.Needver |= (ushort)needver;
+                        partInfo.Pk0304Header.Needver |= (ushort)needver;
 
                         // PK0304出力
                         byte[] pk0304data = partInfo.Pk0304Header.GetBytes();

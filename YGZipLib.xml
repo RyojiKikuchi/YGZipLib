@@ -286,6 +286,137 @@
             </summary>
             <remarks></remarks>
         </member>
+        <member name="T:YGZipLib.Properties.Resources">
+            <summary>
+              ローカライズされた文字列などを検索するための、厳密に型指定されたリソース クラスです。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ResourceManager">
+            <summary>
+              このクラスで使用されているキャッシュされた ResourceManager インスタンスを返します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.Culture">
+            <summary>
+              すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
+              現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_AES_STREAM_BROKEN">
+            <summary>
+              The AES encryption stream is broken. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_ALREDY_FINISHED">
+            <summary>
+              Already finished. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_BAD_ZIPFILE">
+            <summary>
+              The ZIP file cannot be read. (The central directory not found.) に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_DIR_TRAVERSAL_NOT_ALLOWED">
+            <summary>
+              Parent directory traversal is not allowed in zip entry names.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_DIRECTORY_CANNOT_OUTPUT">
+            <summary>
+              The directory cannot be output.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_INCORRECT_PASSWORD">
+            <summary>
+              The password is incorrect. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_INTERNAL_AESMASKGEN_ERROR">
+            <summary>
+              Internal error. AES mask array generation status invalid. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_INTERNAL_QUEUE_ERROR">
+            <summary>
+              Internal error. There is an unprocessed output queue. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_INVALID_AESMODE">
+            <summary>
+              Invalid AES mode specified. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_INVALID_DIRNAME">
+            <summary>
+              The directory name contains invalid characters.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_INVALID_FILENAME">
+            <summary>
+              The file name contains invalid characters.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_OTHER_THREAD_ABORTED">
+            <summary>
+              Other threads have been aborted. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_OUTPUT_DIR_TRAVERSAL_NOT_ALLOWED">
+            <summary>
+              Parent directory traversal is not allowed in zip entry names.: centralDirectory={0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_OUTPUT_DIRECTORY_NOT_FOUND">
+            <summary>
+              The output directory does not exist.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_OUTPUT_FILENAME_INVALID">
+            <summary>
+              The output file name contains invalid characters.: centralDirectory={0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_PASSWORD_LENGTH">
+            <summary>
+              The password length exceeds 65536 bytes. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_ROOT_PATH">
+            <summary>
+              Absolute or drive-rooted paths are not allowed in zip entry names.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_TASK_RUNNING">
+            <summary>
+              The file addition task is running. に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_TEMPDIR_NOTFOUND">
+            <summary>
+              The temporary directory does not exist.: {0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_UNKNOWN_COMPRESSION_METHOD">
+            <summary>
+              This compression method is not supported.: centralDirectory={0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_UNZIP_ERROR">
+            <summary>
+              An exception was thrown during zip decompression.: centralDirectory={0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_ZIP_STREAM_BROKEN_CRC">
+            <summary>
+              The ZIP file stream is broken.(CRC Error): centralDirectory={0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
+        <member name="P:YGZipLib.Properties.Resources.ERRMSG_ZIP_STREAM_BROKEN_SIZE">
+            <summary>
+              The ZIP file stream is broken.(Size): centralDirectory={0} に類似しているローカライズされた文字列を検索します。
+            </summary>
+        </member>
         <member name="T:YGZipLib.Streams.BitInputStream">
             <summary>
             BitInputStream
@@ -706,12 +837,6 @@
             <summary>
             マスク配列処理メソッド設定
             </summary>
-        </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAvx2(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
-            <summary>Avx2でマスク処理</summary>
-        </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAdvSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
-            <summary>Avx2でマスク処理</summary>
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorNoSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
             <summary>Longでマスク処理</summary>

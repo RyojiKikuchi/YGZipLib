@@ -1,5 +1,6 @@
 ﻿ver 1.0.26
  - セントラルディレクトリを依頼順に格納するオプション追加
+ - UnZipArcClass.CentralDirectoryInfoのディレクトリ判定をDOS/Windows以外でも正常に判定できるように修正
 
 ver 1.0.25
  - Unzip時にCentraldirectoryが見つからない場合ファイルがロックされたままとなるバグ修正

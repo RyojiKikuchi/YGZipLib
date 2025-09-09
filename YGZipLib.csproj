@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>YGZipLib</RootNamespace>
@@ -20,11 +20,14 @@
     <PackageTags>zip;aes;multiprocess;async;utf8</PackageTags>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageProjectUrl>https://github.com/RyojiKikuchi/YGZipLib</PackageProjectUrl>
+    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>YGZipLib.xml</DocumentationFile>
-    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
+    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
+    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -35,10 +38,12 @@
     <DebugType>embedded</DebugType>
     <Deterministic>False</Deterministic>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <PlatformTarget>anycpu</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
+    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
+    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <DefineDebug>false</DefineDebug>
@@ -51,15 +56,10 @@
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
-<ItemGroup Condition="Exists('def64')">
-  <None Include="docs\current\readme_def64\README.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme_def64\README-ja.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme_def64\LICENSE.txt" Pack="true" PackagePath="\" />
-</ItemGroup>
-<ItemGroup Condition="!Exists('def64')">
-  <None Include="docs\current\readme\README.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme\README-ja.md" Pack="True" PackagePath="\" />
-  <None Include="docs\current\readme\LICENSE.txt" Pack="true" PackagePath="\" />
+<ItemGroup>
+  <None Include="README.md" Pack="True" PackagePath="\" />
+  <None Include="README-ja.md" Pack="True" PackagePath="\" />
+  <None Include="LICENSE.txt" Pack="true" PackagePath="\" />
 </ItemGroup>
 
 <ItemGroup>

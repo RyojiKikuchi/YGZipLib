@@ -52,6 +52,35 @@ namespace YGMailLib.Zip
 			AES_ENCRYPTION = 0x0063
 		}
 
+
+        internal const uint UNIX_S_IFREG = 0x80000000u;
+        internal const uint UNIX_S_IFDIR = 0x40000000u;
+        internal const uint UNIX_S_IFLNK = 0x20000000u;
+
+        internal enum MadeOs : UInt16
+		{
+			MSDOS = 0x00,
+			AMIGA = 0x01,
+			VMS = 0x02,
+			UNIX = 0x03,
+			VMCMS = 0x04,
+			ATARI = 0x05,
+			OS2 = 0x06,
+			Macintosh = 0x07,
+			Z_SYSTEM = 0x08,
+			CPM = 0x09,
+			TOPS20 = 0x0A,
+			NTFS = 0x0B,
+			QDOS = 0x0C,
+			Acorn = 0x0D,
+			VFAT = 0x0E,
+			WindowsNT = 0x0F,
+			BeOS = 0x10,
+			TANDEM = 0x11,
+			OS400 = 0x12,
+			OSX = 0x13
+		}
+
         private const int READ_BUFFER_SIZE = 8192;
         private const int WRITE_BUFFER_SIZE = 32768;
 
@@ -717,24 +746,53 @@ namespace YGMailLib.Zip
 			{
 				get
 				{
-					if ((this.centralDirectory.Outattr & (UInt32)FileAttributes.Directory) == (UInt32)FileAttributes.Directory)
+                    // 作成OS毎にディレクトリの判定を行う
+                    switch (MadeVerOs)
 					{
-						return true;
-					}
-					else
-					{
-						return false;
-					}
+						case MadeOs.MSDOS:
+                        case MadeOs.NTFS:
+                        case MadeOs.VFAT:
+						case MadeOs.WindowsNT:
+                            // MSDOS, VFAT, WindowsNT系はディレクトリフラグをチェック
+                            if ((this.centralDirectory.Outattr & (UInt32)FileAttributes.Directory) == (UInt32)FileAttributes.Directory)
+                            {
+                                return true;
+                            }
+                            break;
+						case MadeOs.UNIX:
+                            // S_IFDIRビットがセットされている場合はディレクトリ
+                            if ((this.centralDirectory.Outattr & UNIX_S_IFDIR) == UNIX_S_IFDIR)
+							{
+                                return true;
+							}
+							break;
+						default:
+                            // その他のOSはファイル名の末尾がスラッシュで終わる場合はディレクトリとする
+							if (this.FullName.EndsWith("/", StringComparison.Ordinal) || this.FullName.EndsWith("\\", StringComparison.Ordinal))
+							{
+								return true;
+							}
+							break;
+                    }
+                    return false;
 				}
 			}
 
-			/// <summary>
-			/// 暗号化フラグ
-			/// </summary>
-			/// <value></value>
-			/// <returns>暗号化されている場合True</returns>
-			/// <remarks></remarks>
-			public bool IsEncryption
+			internal MadeOs MadeVerOs
+			{
+				get
+				{
+					return (MadeOs)((this.centralDirectory.Madever & 0xFF00) >> 8);
+				}
+            }
+
+            /// <summary>
+            /// 暗号化フラグ
+            /// </summary>
+            /// <value></value>
+            /// <returns>暗号化されている場合True</returns>
+            /// <remarks></remarks>
+            public bool IsEncryption
 			{
 				get
 				{
@@ -789,14 +847,14 @@ namespace YGMailLib.Zip
                     cdInfo.AppendLine($" FileSize:{FileSize:X16}({FileSize:N0})");
                 }
                 cdInfo.AppendLine($" IntAttr:{centralDirectory.Inattr:X4}");
-                cdInfo.AppendLine($" ExtAttr:{centralDirectory.Outattr:X8}({ShareMethodClass.ExternalFileAttributesString(centralDirectory.Outattr)})");
+                cdInfo.AppendLine($" ExtAttr:{centralDirectory.Outattr:X8}({ShareMethodClass.ExternalFileAttributesString(MadeVerOs, centralDirectory.Outattr)})");
                 cdInfo.AppendLine($" GeneralFlg:{centralDirectory.Opt:X4}({ShareMethodClass.GeneralPurposeBitString(centralDirectory.Opt)})");
                 cdInfo.AppendLine($" CRC32:{Crc32:X8}");
 				cdInfo.AppendLine($" Comptype:{centralDirectory.Comptype:X4}({ShareMethodClass.CompTypeString(centralDirectory.Comptype, centralDirectory.Opt)})");
 				cdInfo.AppendLine($" DiskNum:{centralDirectory.Disknum:X4}({centralDirectory.Disknum})");
-				cdInfo.AppendLine($" MadeVer:{centralDirectory.Madever:X4}({centralDirectory.Madever})");
-				cdInfo.AppendLine($" NeedVer:{centralDirectory.Needver:X4}({centralDirectory.Needver})");
-				cdInfo.AppendLine($" Signature:{centralDirectory.Signature:X8}");
+                cdInfo.AppendLine($" MadeVer:{centralDirectory.Madever:X4}({ShareMethodClass.MadeVerString(centralDirectory.Madever)})");
+                cdInfo.AppendLine($" NeedVer:{centralDirectory.Needver:X4}({ShareMethodClass.VersionString(centralDirectory.Needver)})");
+                cdInfo.AppendLine($" Signature:{centralDirectory.Signature:X8}");
 				cdInfo.AppendLine($" DosTimestamp:{ShareMethodClass.DecodeDosFileDateTime(Filedate, Filetime):yyyy/MM/dd HH:mm:ss.ff}");
 				if (centralDirectory.Headerpos == uint.MaxValue)
 				{
@@ -925,8 +983,8 @@ namespace YGMailLib.Zip
                     lcInfo.AppendLine($" GeneralFlg:{localHeader.Opt:X4}({ShareMethodClass.GeneralPurposeBitString(localHeader.Opt)})");
                     lcInfo.AppendLine($" CRC32:{localHeader.Crc32:X8}");
                     lcInfo.AppendLine($" Comptype:{localHeader.Comptype:X4}({ShareMethodClass.CompTypeString(localHeader.Comptype,localHeader.Opt)})");
-                    lcInfo.AppendLine($" NeedVer:{localHeader.Needver:X4}({localHeader.Needver})");
-					lcInfo.AppendLine($" Signature:{localHeader.Signature:X8}");
+                    lcInfo.AppendLine($" NeedVer:{localHeader.Needver:X4}({ShareMethodClass.VersionString(localHeader.Needver)})");
+                    lcInfo.AppendLine($" Signature:{localHeader.Signature:X8}");
                     lcInfo.AppendLine($" DosTimestamp:{ShareMethodClass.DecodeDosFileDateTime(localHeader.Filedate, localHeader.Filetime):yyyy/MM/dd HH:mm:ss.ff}");
 
                     foreach (KeyValuePair<ZipHeader.ExtraDataId, byte[]> ext in this.LocalExtraFields)
@@ -1252,7 +1310,7 @@ namespace YGMailLib.Zip
 		/// <param name="outFilePath">出力先ファイルのパス</param>
 		public void PutFile(CentralDirectoryInfo centralDirectory, string outFilePath)
 		{
-            PutFileAsync(centralDirectory, new FileInfo(outFilePath), defaultPassword, TaskAbort.Create, CancellationToken.None).GetAwaiter().GetResult();
+            PutFileAsync(centralDirectory, new FileInfo(outFilePath), defaultPassword, TaskAbort.Create(), CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -1275,7 +1333,7 @@ namespace YGMailLib.Zip
 		/// <returns></returns>
 		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, string outFilePath, CancellationToken cancelToken)
 		{
-            return PutFileAsync(centralDirectory, new FileInfo(outFilePath), defaultPassword, TaskAbort.Create, cancelToken);
+            return PutFileAsync(centralDirectory, new FileInfo(outFilePath), defaultPassword, TaskAbort.Create(), cancelToken);
         }
 
         /// <summary>
@@ -1301,7 +1359,7 @@ namespace YGMailLib.Zip
 		/// <remarks></remarks>
 		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, FileInfo fileInfo, string password, CancellationToken cancelToken)
 		{
-            return PutFileAsync(centralDirectory, fileInfo, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), TaskAbort.Create, cancelToken);
+            return PutFileAsync(centralDirectory, fileInfo, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), TaskAbort.Create(), cancelToken);
         }
 
         private Task PutFileAsync(CentralDirectoryInfo centralDirectory, FileInfo fileInfo, byte[] password,TaskAbort abort, CancellationToken cancelToken)
@@ -1333,6 +1391,7 @@ namespace YGMailLib.Zip
 					// タスクキャンセル判定
 					cancelToken.ThrowIfCancellationRequested();
 
+					// 他スレッドの中断判定
 					abort.ThrowIfAbortRequested();
 
 					// zip書庫のストリーム
@@ -1365,7 +1424,7 @@ namespace YGMailLib.Zip
 				}
 				catch (Exception ex)
 				{
-					abort.Abort();
+					abort.Abort(ex);
 					string cdInfo = string.Empty;
 					try
 					{
@@ -1391,7 +1450,7 @@ namespace YGMailLib.Zip
 		/// <param name="outStream">出力先ストリーム</param>
 		public void PutFile(CentralDirectoryInfo centralDirectory, Stream outStream)
 		{
-			PutFileAsync(centralDirectory, outStream, defaultPassword, TaskAbort.Create, CancellationToken.None).GetAwaiter().GetResult();
+			PutFileAsync(centralDirectory, outStream, defaultPassword, TaskAbort.Create(), CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
@@ -1414,7 +1473,7 @@ namespace YGMailLib.Zip
 		/// <remarks></remarks>
 		public Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, CancellationToken cancelToken)
 		{
-            return PutFileAsync(centralDirectory, outStream, defaultPassword, TaskAbort.Create, cancelToken);
+            return PutFileAsync(centralDirectory, outStream, defaultPassword, TaskAbort.Create(), cancelToken);
         }
 
         /// <summary>
@@ -1427,7 +1486,7 @@ namespace YGMailLib.Zip
         /// <remarks></remarks>
         public Task PutFileAsync(CentralDirectoryInfo centralDirectory, Stream outStream, string password, CancellationToken cancelToken)
 		{
-            return PutFileAsync(centralDirectory, outStream, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), TaskAbort.Create, cancelToken);
+            return PutFileAsync(centralDirectory, outStream, ShareMethodClass.EncodingGetBytes(password, this.ZipFileNameEncoding), TaskAbort.Create(), cancelToken);
         }
 
         /// <summary>
@@ -1471,6 +1530,7 @@ namespace YGMailLib.Zip
                     // タスクキャンセル判定
                     cancelToken.ThrowIfCancellationRequested();
 
+                    // 他スレッドの中断判定
                     abort.ThrowIfAbortRequested();
 
                     // zip書庫のストリーム
@@ -1488,9 +1548,13 @@ namespace YGMailLib.Zip
 					}
 
 				}
-				catch (Exception ex)
+				catch (TaskAbort.TaskAbortException)
 				{
-                    abort.Abort();
+					return;
+                }
+                catch (Exception ex)
+				{
+                    abort.Abort(ex);
                     string cdInfo = string.Empty;
 					try
 					{
@@ -1586,7 +1650,7 @@ namespace YGMailLib.Zip
 
 			List<Task> list = new List<Task>();
 
-			TaskAbort abort = TaskAbort.Create;
+			TaskAbort abort = TaskAbort.Create();
 
 			// ディレクトリの処理（ディレクトリは同期処理で一気に作ってしまう）
 			centralDirectoryList.ToList().ForEach((centralDir) =>

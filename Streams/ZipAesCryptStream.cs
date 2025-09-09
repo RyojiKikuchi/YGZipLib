@@ -226,6 +226,9 @@ namespace YGMailLib.Zip.Streams
         private static class AesMaskThreadPool
         {
 
+            /// <summary>未使用スレッド判定閾値(ms)</summary>
+            private const double UNUSE_THREAD_DISPOSE_THRESHOLD = 10000;
+
             /// <summary>マスク配列作成処理格納リスト</summary>
             private static readonly List<AesMaskGenerator> threadList = new List<AesMaskGenerator>();
 
@@ -253,39 +256,7 @@ namespace YGMailLib.Zip.Streams
             public static AesMaskGenerator GetGenerator()
             {
 
-                AesMaskGenerator thread;
-                lock (threadListLocker)
-                {
-
-                    // 未使用スレッド取得
-                    thread = threadList.Find(t => t.IsUnUsed == true);
-
-                    // 未使用スレッドが存在しない場合新規スレッドを作成
-                    if (thread == null)
-                    {
-                        thread = new AesMaskGenerator();
-                        threadList.Add(thread);
-                    }
-
-                    // 使用中フラグ設定
-                    thread.InUse = true;
-
-#if DEBUG
-                    Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(GetThread): ManagedThreadId={thread.ManagedThreadId:x8}, Name={thread.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}");
-#endif
-
-                    // 回収タイマー起動
-                    if (tm.Enabled == false)
-                    {
-#if DEBUG
-                        Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(GetThread): Unused thread collection event active");
-#endif
-                        tm.Start();
-                    }
-
-                }
-
-                return thread;
+                return ThreadListAccess(ListAccessType.GET, null);
 
             }
 
@@ -296,30 +267,19 @@ namespace YGMailLib.Zip.Streams
             /// <param name="e"></param>
             private static void Tm_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                DisposeUnuseGenerator(10000);
+                DisposeUnuseGenerator();
             }
 
             /// <summary>
-            /// マスク生成取得
+            /// マスク生成スレッド返却
             /// </summary>
             /// <param name="generator"></param>
             /// <exception cref="ArgumentOutOfRangeException"></exception>
             public static void ReturnGenerator(AesMaskGenerator generator)
             {
-                lock (threadListLocker)
-                {
-                    // リストチェック
-                    if (threadList.Find(t => t.Equals(generator)) == null)
-                        throw new ArgumentOutOfRangeException(nameof(generator));
 
-                    // 使用中フラグOFF
-                    generator.InUse = false;
-                    // 最終使用タイムスタンプ更新
-                    generator.LastUse = DateTimeOffset.UtcNow;
-#if DEBUG
-                    Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(ReturnThread): ManagedThreadId={generator.ManagedThreadId:x8}, Name={generator.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}");
-#endif
-                }
+                ThreadListAccess(ListAccessType.RETURN, generator);
+            
             }
 
             /// <summary>
@@ -331,28 +291,15 @@ namespace YGMailLib.Zip.Streams
             /// </remarks>
             public static void RemoveGenerator(AesMaskGenerator generator)
             {
-                lock (threadListLocker)
-                {
-                    threadList.Remove(generator);
-#if DEBUG
-                    Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(RemoveThread): ManagedThreadId={generator.ManagedThreadId:x8}, Name={generator.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}");
-#endif
-                    // スレッド数が0なら回収イベントをSTOPする
-                    if (threadList.Count == 0)
-                    {
-#if DEBUG
-                        Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(RemoveThread): Unused thread collection event inactive");
-#endif
-                        tm.Stop();
-                    }
-                }
+
+                   ThreadListAccess(ListAccessType.REMOVE, generator);
+
             }
 
             /// <summary>
             /// 未使用スレッド解放
             /// </summary>
-            /// <param name="milliseconds"></param>
-            private static void DisposeUnuseGenerator(long milliseconds)
+            private static void DisposeUnuseGenerator()
             {
                 // 未使用スレッドのリスト
                 List<AesMaskGenerator> disposeList = new List<AesMaskGenerator>();
@@ -363,36 +310,8 @@ namespace YGMailLib.Zip.Streams
                     beforeCount = threadList.Count;
                 }
 #endif
-                lock (threadListLocker)
-                {
-                    // 未使用スレッドのリストアップ
-                    threadList.ForEach(generaotr =>
-                    {
-#if DEBUG
-                        bool isCollection = false;
-#endif
-                        if (generaotr.IsUnUsed)
-                        {
-                            TimeSpan diff = DateTimeOffset.UtcNow - generaotr.LastUse;
-                            if (milliseconds >= 0 && diff.TotalMilliseconds > milliseconds)
-                            {
-                                generaotr.InUse = true;
-                                disposeList.Add(generaotr);
-#if DEBUG
-                                isCollection = true;
-#endif
-                            }
-                        }
-#if DEBUG
-                        Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(DisposeUnuseThread): ManagedThreadId={generaotr.ManagedThreadId:x8}, Name={generaotr.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}, LaseUse={generaotr.LastUse}, Collection={isCollection}");
-#endif
-                    });
-                }
 
-                // 未使用スレッド解放
-                disposeList.ForEach(t => {
-                    t.Dispose();
-                });
+                ThreadListAccess(ListAccessType.DISPOSEUNUSETHREAD, null);
 
 #if DEBUG
                 lock (threadListLocker)
@@ -404,6 +323,135 @@ namespace YGMailLib.Zip.Streams
 #endif
 
             }
+            
+            private enum ListAccessType
+            {
+                GET,
+                RETURN,
+                REMOVE,
+                DISPOSEUNUSETHREAD
+            }
+
+            private static AesMaskGenerator ThreadListAccess(ListAccessType accessType, AesMaskGenerator returnGenerator)
+            {
+
+                List<AesMaskGenerator> disposeList = null;
+
+                lock (threadListLocker)
+                {
+                    switch (accessType)
+                    {
+                        case ListAccessType.GET:
+
+                            // 未使用スレッド取得
+                            AesMaskGenerator generator = threadList.Find(t => t.IsUnUsed == true);
+
+                            // 未使用スレッドが存在しない場合新規スレッドを作成
+                            if (generator == null)
+                            {
+                                generator = new AesMaskGenerator();
+                                threadList.Add(generator);
+                            }
+
+                            // 使用中フラグ設定
+                            generator.InUse = true;
+
+#if DEBUG
+                            Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(GetThread): ManagedThreadId={generator.ManagedThreadId:x8}, Name={generator.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}");
+#endif
+
+                            // 回収タイマー起動
+                            if (tm.Enabled == false)
+                            {
+#if DEBUG
+                                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(GetThread): Unused thread collection event active");
+#endif
+                                tm.Start();
+                            }
+
+                            return generator;
+
+                        case ListAccessType.RETURN:
+
+                            // リストチェック
+                            if (threadList.Find(t => t.Equals(returnGenerator)) == null)
+                                throw new ArgumentOutOfRangeException(nameof(returnGenerator));
+
+                            // 使用中フラグOFF
+                            returnGenerator.InUse = false;
+                            // 最終使用タイムスタンプ更新
+                            returnGenerator.UnUseReset();
+
+#if DEBUG
+                            Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(ReturnThread): ManagedThreadId={returnGenerator.ManagedThreadId:x8}, Name={returnGenerator.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}");
+#endif
+                            
+                            return null;
+
+                        case ListAccessType.REMOVE:
+
+                            threadList.Remove(returnGenerator);
+#if DEBUG
+                            Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(RemoveThread): ManagedThreadId={returnGenerator.ManagedThreadId:x8}, Name={returnGenerator.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t => t.InUse).Count}");
+#endif
+                            // スレッド数が0なら回収イベントをSTOPする
+                            if (threadList.Count == 0)
+                            {
+#if DEBUG
+                                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(RemoveThread): Unused thread collection event inactive");
+#endif
+                                tm.Stop();
+                            }
+
+                            return null;
+
+                        case ListAccessType.DISPOSEUNUSETHREAD:
+
+                            disposeList = new List<AesMaskGenerator>();
+
+                            // 未使用スレッドのリストアップ
+                            threadList.ForEach(t =>
+                            {
+#if DEBUG
+                                bool isCollection = false;
+#endif
+                                if (t.IsUnUsed)
+                                {
+                                    if (t.UnUseMilliseconds > UNUSE_THREAD_DISPOSE_THRESHOLD)
+                                    {
+                                        t.InUse = true;
+                                        disposeList.Add(t);
+#if DEBUG
+                                        isCollection = true;
+#endif
+                                    }
+                                }
+#if DEBUG
+                                Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(DisposeUnuseThread): ManagedThreadId={t.ManagedThreadId:x8}, Name={t.Name}, Count={threadList.Count}, InUse={threadList.FindAll(t2 => t2.InUse).Count}, UnUseMilliseconds={t.UnUseMilliseconds}, Collection={isCollection}");
+#endif
+                            });
+                            
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(accessType));
+                    }
+
+                }
+
+                // ロック外でDisposeを実行
+                if (accessType == ListAccessType.DISPOSEUNUSETHREAD && disposeList != null)
+                {
+                    disposeList.ForEach(t => t.Dispose());
+                    disposeList.Clear();
+                    disposeList = null;
+                }
+
+                return null;
+
+            }
+
+
         }
 
         #endregion
@@ -470,8 +518,27 @@ namespace YGMailLib.Zip.Streams
             /// <summary>マスク作成スレッド</summary>
             private Thread createMaskThread = null;
 
-            /// <summary>最後に使用されたタイムスタンプ</summary>
-            public DateTimeOffset LastUse { get; set; } = DateTimeOffset.UtcNow;
+            /// <summary>cancel済</summary>
+            private bool canceled = false;
+
+            private long unUseResetTicks { get; set; } = Environment.TickCount;
+
+            /// <summary>未使用経過時間(ms)</summary>
+            public long UnUseMilliseconds
+            {
+                get
+                {
+                    long nowTicks = Environment.TickCount;
+                    if (nowTicks > unUseResetTicks)
+                    {
+                        return nowTicks - unUseResetTicks;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
 
             /// <summary>使用中フラグ</summary>
             public bool InUse { get; set; } = true;
@@ -481,7 +548,7 @@ namespace YGMailLib.Zip.Streams
             {
                 get
                 {
-                    return InUse == false &&
+                    return canceled == false && InUse == false &&
                            createMaskThread.IsAlive == true &&
                          ((createMaskThread.ThreadState & System.Threading.ThreadState.WaitSleepJoin) == System.Threading.ThreadState.WaitSleepJoin) &&
                            executeEvent.WaitOne(0) == false;
@@ -552,6 +619,14 @@ namespace YGMailLib.Zip.Streams
                 isCompleted = false;
                 successEvent.Reset();
                 executeEvent.Set();
+            }
+
+            /// <summary>
+            /// 未使用タイマーリセット
+            /// </summary>
+            public void UnUseReset()
+            {
+                unUseResetTicks = Environment.TickCount;
             }
 
             /// <summary>
@@ -634,6 +709,8 @@ namespace YGMailLib.Zip.Streams
                             Stopwatch stp = Stopwatch.StartNew();
 #endif
 
+                            this.UnUseReset();
+
                             // 使用する配列取得
                             maskArray = ((maskSelecter++ % 2 == 0) ? maskArray0 : maskArray1);
 
@@ -705,6 +782,9 @@ namespace YGMailLib.Zip.Streams
 #if DEBUG
                         Debug.WriteLine($"Task {Task.CurrentId:x4}, ThreadId={Environment.CurrentManagedThreadId:x4} : ZipAesCryptStream(Dispose).ThreadState={createMaskThread?.ThreadState}, Priority={createMaskThread.Priority}, IsAlive={createMaskThread?.IsAlive}, IsThreadPoolThread={createMaskThread.IsThreadPoolThread}");
 #endif
+
+                        // キャンセル済みにセット
+                        canceled = true;
 
                         // CreateMaskThredのお掃除
                         // ThreadState毎の停止処理をやめて、キャンセル=>executeEventのセットのみでループを抜けられる用に変更

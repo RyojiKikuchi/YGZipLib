@@ -41,12 +41,10 @@ namespace YGMailLib.Zip
 
         #region "ENUM"
 
-        /// <summary>
-        /// 格納するタイムスタンプ
-        /// </summary>
+        /// <summary>格納するタイムスタンプ</summary>
         public enum StoreTimestampOption : UInt16
         {
-            /// <summary></summary>
+            /// <summary>DOS Timestamp only</summary>
             DosOnly = 0x0000,
             /// <summary>NTFS Timestamp(default)</summary>
             Ntfs = 0x000a,
@@ -56,10 +54,7 @@ namespace YGMailLib.Zip
             NtfsAndExtendedTimestamp = 0x0001
         }
 
-        /// <summary>
-        /// 圧縮オプション
-        /// </summary>
-        /// <remarks></remarks>
+        /// <summary>圧縮オプション</summary>
         public enum COMPRESSION_OPTION : int
         {
             /// <summary>圧縮なし</summary>
@@ -70,10 +65,8 @@ namespace YGMailLib.Zip
 
         /// <summary>
         /// 暗号化方式
+        /// <para><see cref="ZipArcClass.Password"/>が指定された場合に使用する暗号化方式を指定します。</para>
         /// </summary>
-        /// <remarks>
-        /// <see cref="ZipArcClass.Password"/>が指定された場合に使用する暗号化方式を指定します。
-        /// </remarks>
         public enum ENCRYPTION_OPTION : int
         {
             /// <summary>ZIP2.0(Traditional PKWARE Encryption)</summary>
@@ -134,7 +127,7 @@ namespace YGMailLib.Zip
         /// <summary>CentralDirectryに設定するmade ver</summary>
         /// <remarks>
         /// 上位バイトはfile attributeの互換性。下位バイトはZIP仕様書のバージョン。
-        /// 上位バイト 0:DOS(FAT/FAT32...),3:unix,7:mac,10:NTFS,...  
+        /// 上位バイト 0:DOS(FAT/FAT32...), 3:unix, 7:mac, 10:NTFS,...  
         ///   現状directoryとarchive属性にしか対応しないので0のDOSを設定
         /// 下位バイト ver6.3 を設定
         /// </remarks>
@@ -168,6 +161,9 @@ namespace YGMailLib.Zip
 
         /// <summary>ディレクトリ辞書(入力されたディレクトリ)</summary>
         private readonly Dictionary<string, string> dirDicOrg = new Dictionary<string, string>();
+
+        /// <summary>格納済みディレクトリリスト</summary>
+        private readonly HashSet<string> storedDirList= new HashSet<string>();
 
         /// <summary>ファイル名・パスワードのエンコーディング</summary>
         private Encoding filenameEncoding = null;
@@ -394,17 +390,14 @@ if (filenameEncoding == null)
         /// </summary>
         public int TotalFileCount => directoryEntries;
 
-#endregion
+        #endregion
 
         #region "コンストラクタ"
 
         /// <summary>
-        /// コンストラクタ 
+        /// コンストラクタ
         /// </summary>
-        /// <param name="writeStream">
-        /// ZIP書庫出力ストリーム
-        /// </param>
-        /// <remarks></remarks>
+        /// <param name="writeStream">ZIP書庫出力ストリーム</param>
         public ZipArcClass(Stream writeStream): this(writeStream, 0, Path.GetTempPath()) { }
 
         /// <summary>
@@ -1384,6 +1377,14 @@ if (filenameEncoding == null)
                                                       CancellationToken cancelToken)
         {
             List<Task> taskList = new List<Task>();
+
+            // 格納済みチェック
+            string realDirName;
+            try { realDirName = Path.GetFullPath(di.FullName); } catch{ realDirName = di.FullName; }
+            if (storedDirList.Add(realDirName) == false)
+            {
+                return taskList;
+            }
 
             // Directoryとファイルのリスト取得
             List<DirectoryInfo> dirList=new List<DirectoryInfo> { };

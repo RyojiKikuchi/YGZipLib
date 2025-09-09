@@ -11,8 +11,6 @@ using static YGZipLib.UnZipArcClass;
 using System.Runtime.CompilerServices;
 
 
-
-
 #if YGZIPLIB
 using YGZipLib.Common;
 using YGZipLib.Streams;
@@ -947,7 +945,59 @@ namespace YGMailLib.Zip.Common
 
         }
 
-#endregion
+        #endregion
+
+        #region MonotonicClock
+
+#if NETCOREAPP3_0_OR_GREATER
+
+        // そのまま TickCount64 が使えるターゲット
+        public static long TickCount64 => Environment.TickCount64;
+
+#else
+
+        private static int lastTick32;
+        private static long accumulatedMs;
+        private static bool initialized;
+
+        public static long TickCount64
+        {
+            get
+            {
+                if (!initialized)
+                {
+                    Initialize();
+                }
+
+                int cur = Environment.TickCount;
+                int prev = Volatile.Read(ref lastTick32);
+                if (cur != prev)
+                {
+                    // prev から cur への unsigned 差分 (ラップ考慮)
+                    uint delta = unchecked((uint)(cur - prev));
+                    if (Interlocked.CompareExchange(ref lastTick32, cur, prev) == prev)
+                    {
+                        Interlocked.Add(ref accumulatedMs, delta);
+                    }
+                }
+                return Volatile.Read(ref accumulatedMs);
+            }
+        }
+
+        private static void Initialize()
+        {
+            int tick = Environment.TickCount;
+            lastTick32 = tick;
+            accumulatedMs = (uint)tick; // 初期値を unsigned 化して long へ
+            Thread.MemoryBarrier();
+            initialized = true;
+        }
+#endif
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Elapsed(long startMillis) => TickCount64 - startMillis;
+
+        #endregion
 
     }
 }

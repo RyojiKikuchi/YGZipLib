@@ -417,24 +417,6 @@
               The ZIP file stream is broken.(Size): centralDirectory={0} に類似しているローカライズされた文字列を検索します。
             </summary>
         </member>
-        <member name="T:YGZipLib.Streams.BitInputStream">
-            <summary>
-            BitInputStream
-            Apache Commons Compress Release 1.21から移植
-            src/main/java/org/apache/commons/compress/utils
-              BitInputStream.java
-            </summary>
-        </member>
-        <member name="F:YGZipLib.Streams.BitInputStream.inSt">
-            <summary>入力ストリーム</summary>
-        </member>
-        <member name="F:YGZipLib.Streams.BitInputStream.bitsCached">
-            <summary>出力キャッシュ</summary>
-            <remarks>.netではjavaにある符号無し右シフトがないので、unsignedとしている</remarks>
-        </member>
-        <member name="F:YGZipLib.Streams.BitInputStream.bitsCachedSize">
-            <summary>キャッシュしているビット数</summary>
-        </member>
         <member name="T:YGZipLib.Streams.CalcCrc32Stream">
             <summary>
             CRC32算出クラス
@@ -460,16 +442,6 @@
             CRC32算出結果のリセット
             </summary>
             <remarks></remarks>
-        </member>
-        <member name="T:YGZipLib.Streams.Deflate64Stream">
-            <summary>
-            BitInputStream
-            Apache Commons Compress Release 1.21から移植
-            src/main/java/org/apache/commons/compress/compressors/deflate64
-              Deflate64CompressorInputStream.java
-              HuffmanDecoder.java
-              HuffmanState.java
-            </summary>
         </member>
         <member name="T:YGZipLib.Streams.InputStream">
             <summary>
@@ -657,6 +629,9 @@
             マスク配列作成スレッドプール
             </summary>
         </member>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.UNUSE_THREAD_DISPOSE_THRESHOLD">
+            <summary>未使用スレッド判定閾値(ms)</summary>
+        </member>
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.threadList">
             <summary>マスク配列作成処理格納リスト</summary>
         </member>
@@ -686,7 +661,7 @@
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.ReturnGenerator(YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator)">
             <summary>
-            マスク生成取得
+            マスク生成スレッド返却
             </summary>
             <param name="generator"></param>
             <exception cref="T:System.ArgumentOutOfRangeException"></exception>
@@ -700,11 +675,10 @@
             <seealso cref="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.CreateNextMask(System.Object)"/>の最後のfinally句から呼ばれる
             </remarks>
         </member>
-        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.DisposeUnuseGenerator(System.Int64)">
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskThreadPool.DisposeUnuseGenerator">
             <summary>
             未使用スレッド解放
             </summary>
-            <param name="milliseconds"></param>
         </member>
         <member name="T:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator">
             <summary>
@@ -765,8 +739,11 @@
         <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.createMaskThread">
             <summary>マスク作成スレッド</summary>
         </member>
-        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.LastUse">
-            <summary>最後に使用されたタイムスタンプ</summary>
+        <member name="F:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.canceled">
+            <summary>cancel済</summary>
+        </member>
+        <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.UnUseMilliseconds">
+            <summary>未使用経過時間(ms)</summary>
         </member>
         <member name="P:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.InUse">
             <summary>使用中フラグ</summary>
@@ -794,6 +771,11 @@
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.Start">
             <summary>
             マスク作成処理起動
+            </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.UnUseReset">
+            <summary>
+            未使用タイマーリセット
             </summary>
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.AesMaskGenerator.GetMaskArray">
@@ -837,6 +819,21 @@
             <summary>
             マスク配列処理メソッド設定
             </summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector512(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector512(64Byte)でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector256(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector256(32Byte)でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorVector128(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Vector128でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAvx2(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Avx2でマスク処理</summary>
+        </member>
+        <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorAdvSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
+            <summary>Avx2でマスク処理</summary>
         </member>
         <member name="M:YGZipLib.Streams.ZipAesCryptStream.MaskByteArrayXorNoSimd(System.Int64*@,System.Int64*@,System.Int32,System.Int32@)">
             <summary>Longでマスク処理</summary>
@@ -1492,12 +1489,10 @@
             <summary>ZIP書庫作成クラス</summary>
         </member>
         <member name="T:YGZipLib.ZipArcClass.StoreTimestampOption">
-            <summary>
-            格納するタイムスタンプ
-            </summary>
+            <summary>格納するタイムスタンプ</summary>
         </member>
         <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.DosOnly">
-            <summary></summary>
+            <summary>DOS Timestamp only</summary>
         </member>
         <member name="F:YGZipLib.ZipArcClass.StoreTimestampOption.Ntfs">
             <summary>NTFS Timestamp(default)</summary>
@@ -1509,10 +1504,7 @@
             <summary>NTFS Timestampとextended timestampの両方</summary>
         </member>
         <member name="T:YGZipLib.ZipArcClass.COMPRESSION_OPTION">
-            <summary>
-            圧縮オプション
-            </summary>
-            <remarks></remarks>
+            <summary>圧縮オプション</summary>
         </member>
         <member name="F:YGZipLib.ZipArcClass.COMPRESSION_OPTION.NOT_COMPRESSED">
             <summary>圧縮なし</summary>
@@ -1523,10 +1515,8 @@
         <member name="T:YGZipLib.ZipArcClass.ENCRYPTION_OPTION">
             <summary>
             暗号化方式
+            <para><see cref="P:YGZipLib.ZipArcClass.Password"/>が指定された場合に使用する暗号化方式を指定します。</para>
             </summary>
-            <remarks>
-            <see cref="P:YGZipLib.ZipArcClass.Password"/>が指定された場合に使用する暗号化方式を指定します。
-            </remarks>
         </member>
         <member name="F:YGZipLib.ZipArcClass.ENCRYPTION_OPTION.TRADITIONAL">
             <summary>ZIP2.0(Traditional PKWARE Encryption)</summary>
@@ -1562,7 +1552,7 @@
             <summary>CentralDirectryに設定するmade ver</summary>
             <remarks>
             上位バイトはfile attributeの互換性。下位バイトはZIP仕様書のバージョン。
-            上位バイト 0:DOS(FAT/FAT32...),3:unix,7:mac,10:NTFS,...  
+            上位バイト 0:DOS(FAT/FAT32...), 3:unix, 7:mac, 10:NTFS,...  
               現状directoryとarchive属性にしか対応しないので0のDOSを設定
             下位バイト ver6.3 を設定
             </remarks>
@@ -1581,6 +1571,9 @@
         </member>
         <member name="F:YGZipLib.ZipArcClass.dirDicOrg">
             <summary>ディレクトリ辞書(入力されたディレクトリ)</summary>
+        </member>
+        <member name="F:YGZipLib.ZipArcClass.storedDirList">
+            <summary>格納済みディレクトリリスト</summary>
         </member>
         <member name="F:YGZipLib.ZipArcClass.filenameEncoding">
             <summary>ファイル名・パスワードのエンコーディング</summary>
@@ -1725,12 +1718,9 @@
         </member>
         <member name="M:YGZipLib.ZipArcClass.#ctor(System.IO.Stream)">
             <summary>
-            コンストラクタ 
+            コンストラクタ
             </summary>
-            <param name="writeStream">
-            ZIP書庫出力ストリーム
-            </param>
-            <remarks></remarks>
+            <param name="writeStream">ZIP書庫出力ストリーム</param>
         </member>
         <member name="M:YGZipLib.ZipArcClass.#ctor(System.String)">
             <summary>

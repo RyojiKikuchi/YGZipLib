@@ -54,7 +54,7 @@ namespace YGMailLib.Zip.Streams
 			maxPos = initPos + inputLength;
 			if (maxPos > baseStream.Length)
 			{
-				throw new ArgumentOutOfRangeException("inputLength is out of stream range.", nameof(inputLength));
+				throw new ArgumentOutOfRangeException(nameof(inputLength), "inputLength is out of stream range.");
 			}
 		}
 

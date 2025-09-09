@@ -24,8 +24,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>YGZipLib.xml</DocumentationFile>
-    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
-    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
+    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -39,8 +38,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants Condition="Exists('def64')">YGZIPLIB;DEFLATE64</DefineConstants>
-    <DefineConstants Condition="!Exists('def64')">YGZIPLIB</DefineConstants>
+    <DefineConstants>YGZIPLIB;DEFLATE64</DefineConstants>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <DefineDebug>false</DefineDebug>
@@ -92,10 +90,5 @@
   <None Include="docs\current\ja\YGZipLib.xml" Pack="true" PackagePath="lib\net8.0\ja" />
 
 </ItemGroup>
-
-<ItemGroup>
-  <Folder Include="def64\" />
-</ItemGroup>
-
 
 </Project>
